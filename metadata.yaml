@@ -1,0 +1,12 @@
+name: openstack-dashboard
+summary: a Django web interface to OpenStack
+description: |
+
+provides:
+  horizon:
+    interface: openstack-dashboard
+requires:
+  shared-db:
+    interface: mysql
+  keystone-service:
+    interface: keystone

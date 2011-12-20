@@ -1,0 +1,24 @@
+#!/bin/bash
+
+PACKAGES="openstack-dashboard python-keystoneclient openstackx"
+LOCAL_SETTINGS="/usr/share/openstack-dashboard/local/local_settings.py"
+LOCAL_SETTING_COMPILED="${LOCAL_SETTINGS}c"
+
+set_or_update() {
+  # set a key = value option in $LOCAL_SETTINGS
+  local key=$1 value=$2
+  [[ -z "$key" ]] || [[ -z "$value" ]] &&
+    juju-log "set_or_update: ERROR - missing parameters" && return 1
+  grep -q "^$key = \"$value\"" "$LOCAL_SETTINGS" &&
+    juju-log "set_or_update: $key = $value already set" && return 0
+  if grep -q "^$key = " "$LOCAL_SETTINGS" ; then
+    juju-log "set_or_update: Setting $key = $value"
+    cp "$LOCAL_SETTINGS" /var/lib/juju/dashboard-local_settings.py.last
+    sed -i "s|\(^$key = \).*|\1\"$value\"|g" "$LOCAL_SETTINGS" || return 1
+  else
+    juju-log "set_or_update: Adding $key = $value"
+    echo "$key = \"$value\"" >>$LOCAL_SETTINGS || return 1
+  fi 
+  [[ -e $LOCAL_SETTINGS_COMPILED ]] && rm -rf $LOCAL_SETTINGS_COMPILED
+  return 0
+}

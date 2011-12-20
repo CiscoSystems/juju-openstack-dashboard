@@ -1,0 +1,66 @@
+#!/bin/bash
+set -e 
+
+FORMULA_DIR=$(dirname $0)
+ARG0=${0##*/}
+
+if [[ -e $FORMULA_DIR/horizon-common ]] ; then
+  . $FORMULA_DIR/horizon-common
+else
+  echo "ERROR: Could not load horizon-common from $FORMULA_DIR"
+fi
+
+function install_hook {
+  apt-get update
+  DEBIAN_FRONTEND=noninteractive apt-get -y install $PACKAGES
+}
+
+function db_joined {
+  juju-log "db_joined: requesting access to $NOVA_DB for $DB_USER@`unit-get private-address`"
+  relation-set database=$NOVA_DB
+  relation-set username=$DB_USER
+  relation-set hostname=`unit-get private-address`
+}
+
+function db_changed {
+  DB_HOST=`relation-get private-address`
+  DB_PASSWORD=`relation-get password`
+  if [[ -z $DB_HOST ]] || [[ -z $DB_PASSWORD ]] ; then
+    echo "db_changed: DB_HOST || DB_PASSWORD not yet set. Exit 0 and retry"
+    exit 0
+  else
+    echo "db_changed: Received password from $DB_HOST"
+  fi
+  juju-log "db_changed: Configuring registry for access to $NOVA_DB@$DB_HOST"
+}
+
+function keystone_joined {
+  # we simply request the default role from keystone
+  local role=$(config-get default-role)
+  relation-set role="$role"
+}
+
+function keystone_changed {
+  # keystone returns with ports for admin and auth URLs + an admintoken
+  local token=$(relation-get admin_token)
+  local service_port=$(relation-get service_port)
+  local auth_port=$(relation-get auth_port)
+  [[ -z "$token" ]] || [[ -z "$service_port" ]] || [[ -z "$auth_port" ]] &&
+    juju-log "keystone_changed: Missing relation data. Peer not ready?" && exit 0
+  service_url="http://$(relation-get private-address):$service_port/v2.0"
+  admin_url="http://$(relation-get private-address):$auth_port/v2.0"
+  set_or_update OPENSTACK_KEYSTONE_URL "$service_url"
+  set_or_update OPENSTACK_KEYSTONE_ADMIN_URL "$admin_url"
+  set_or_update OPENSTACK_KEYSTONE_DEFAULT_ROLE "$(config-get default-role)"
+  service apache2 restart
+}
+
+case $ARG0 in
+  "install") install_hook ;;
+  "start") exit 0 ;;
+  "stop") exit 0 ;;
+  "shared-db-relation-joined") db_joined ;;
+  "shared-db-relation-changed") db_changed;;
+  "keystone-service-relation-joined") keystone_joined;;
+  "keystone-service-relation-changed") keystone_changed;;
+esac
