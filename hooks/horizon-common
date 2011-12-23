@@ -1,6 +1,7 @@
 #!/bin/bash
 
-PACKAGES="openstack-dashboard python-keystoneclient openstackx"
+PACKAGES="openstack-dashboard python-keystoneclient
+          openstackx python-memcache memcached"
 LOCAL_SETTINGS="/usr/share/openstack-dashboard/local/local_settings.py"
 LOCAL_SETTING_COMPILED="${LOCAL_SETTINGS}c"
 

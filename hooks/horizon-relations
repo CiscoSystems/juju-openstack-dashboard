@@ -46,6 +46,7 @@ function keystone_changed {
   set_or_update OPENSTACK_KEYSTONE_URL "$service_url"
   set_or_update OPENSTACK_KEYSTONE_ADMIN_URL "$admin_url"
   set_or_update OPENSTACK_KEYSTONE_DEFAULT_ROLE "$(config-get default-role)"
+  set_or_update CACHE_BACKEND "memcached://127.0.0.1:11211/"
   service apache2 restart
 }
 
