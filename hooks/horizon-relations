@@ -13,25 +13,19 @@ fi
 function install_hook {
   apt-get update
   DEBIAN_FRONTEND=noninteractive apt-get -y install $PACKAGES
+  open-port 80
 }
 
 function db_joined {
-  juju-log "db_joined: requesting access to $NOVA_DB for $DB_USER@`unit-get private-address`"
-  relation-set database=$NOVA_DB
-  relation-set username=$DB_USER
-  relation-set hostname=`unit-get private-address`
+  # TODO
+  # relation-set database, username, hostname 
+  return 0
 }
 
 function db_changed {
-  DB_HOST=`relation-get private-address`
-  DB_PASSWORD=`relation-get password`
-  if [[ -z $DB_HOST ]] || [[ -z $DB_PASSWORD ]] ; then
-    echo "db_changed: DB_HOST || DB_PASSWORD not yet set. Exit 0 and retry"
-    exit 0
-  else
-    echo "db_changed: Received password from $DB_HOST"
-  fi
-  juju-log "db_changed: Configuring registry for access to $NOVA_DB@$DB_HOST"
+  # TODO
+  # relation-get password, private-address
+  return 0
 }
 
 function keystone_joined {
