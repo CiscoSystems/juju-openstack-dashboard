@@ -5,6 +5,13 @@ PACKAGES="openstack-dashboard python-keystoneclient
 LOCAL_SETTINGS="/usr/share/openstack-dashboard/local/local_settings.py"
 LOCAL_SETTING_COMPILED="${LOCAL_SETTINGS}c"
 
+
+# NOTE: local_settings.py is a python module, it really sucks
+# to manage this via sed.  In the future this should be changed
+# to some template mechanism or managing config variables via
+# a seperate module in /etc/openstack-dashboard/ that could be
+# imported and used in local_settings.  We've got some work todo
+# in packaging for this as well. adam_g 12/23/11
 set_or_update() {
   # set a key = value option in $LOCAL_SETTINGS
   local key=$1 value=$2
