@@ -3,3 +3,11 @@ options:
         default: "Member"
         type: string
         description: "Keystone role to request from Keystone service"
+    horizon-release:
+        default: "distro"
+        type: string
+        description: |
+          Installation source. Default installs packages from Ubuntu archive.
+          Valid choices are a LP PPA ('ppa:your/ppa') or a URL entry for
+          sources.list with an optional GPG key appended after | for import
+          from Ubuntu keyserver ('http://host/ubuntu oneiric main|KEYID')

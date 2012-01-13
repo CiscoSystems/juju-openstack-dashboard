@@ -11,6 +11,7 @@ else
 fi
 
 function install_hook {
+  add_ppa
   apt-get update
   DEBIAN_FRONTEND=noninteractive apt-get -y install $PACKAGES
   open-port 80
