@@ -14,6 +14,12 @@ function install_hook {
   add_ppa
   apt-get update
   DEBIAN_FRONTEND=noninteractive apt-get -y install $PACKAGES
+
+  # create a base local_settings.py from the sample shipped with pkgs
+  [[ ! -e "$LOCAL_SETTINGS" ]] &&   
+    cp /usr/share/openstack-dashboard/local/local_settings.py.example \
+      "$LOCAL_SETTINGS"
+
   open-port 80
 }
 
