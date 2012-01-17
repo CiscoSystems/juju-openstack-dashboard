@@ -19,7 +19,7 @@ function install_hook {
   [[ ! -e "$LOCAL_SETTINGS" ]] &&   
     cp /usr/share/openstack-dashboard/local/local_settings.py.example \
       "$LOCAL_SETTINGS"
-
+  chmod 0644 "$LOCAL_SETTINGS"
   open-port 80
 }
 
