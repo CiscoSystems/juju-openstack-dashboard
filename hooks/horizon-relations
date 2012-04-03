@@ -14,12 +14,7 @@ function install_hook {
   add_ppa
   apt-get update
   DEBIAN_FRONTEND=noninteractive apt-get -y install $PACKAGES
-
-  # create a base local_settings.py from the sample shipped with pkgs
-  [[ ! -e "$LOCAL_SETTINGS" ]] &&   
-    cp /usr/share/openstack-dashboard/local/local_settings.py.example \
-      "$LOCAL_SETTINGS"
-  chmod 0644 "$LOCAL_SETTINGS"
+  set_or_update CACHE_BACKEND "memcached://127.0.0.1:11211/"
   open-port 80
 }
 
@@ -36,24 +31,16 @@ function db_changed {
 }
 
 function keystone_joined {
-  # we simply request the default role from keystone
-  local role=$(config-get default-role)
-  relation-set role="$role"
+  # service=None lets keystone know we don't need anything entered
+  # into the service catalog.  we only really care about getting the
+  # private-address from the relation
+  relation-set service="None" region="None" public_url="None" \
+               admin_url="None" internal_url="None"
 }
 
 function keystone_changed {
-  # keystone returns with ports for admin and auth URLs + an admintoken
-  local token=$(relation-get admin_token)
-  local service_port=$(relation-get service_port)
-  local auth_port=$(relation-get auth_port)
-  [[ -z "$token" ]] || [[ -z "$service_port" ]] || [[ -z "$auth_port" ]] &&
-    juju-log "keystone_changed: Missing relation data. Peer not ready?" && exit 0
-  service_url="http://$(relation-get private-address):$service_port/v2.0"
-  admin_url="http://$(relation-get private-address):$auth_port/v2.0"
+  service_url="http://$(relation-get private-address):5000/v2.0"
   set_or_update OPENSTACK_KEYSTONE_URL "$service_url"
-  set_or_update OPENSTACK_KEYSTONE_ADMIN_URL "$admin_url"
-  set_or_update OPENSTACK_KEYSTONE_DEFAULT_ROLE "$(config-get default-role)"
-  set_or_update CACHE_BACKEND "memcached://127.0.0.1:11211/"
   service apache2 restart
 }
 
@@ -63,6 +50,6 @@ case $ARG0 in
   "stop") exit 0 ;;
   "shared-db-relation-joined") db_joined ;;
   "shared-db-relation-changed") db_changed;;
-  "keystone-service-relation-joined") keystone_joined;;
-  "keystone-service-relation-changed") keystone_changed;;
+  "identity-service-relation-joined") keystone_joined;;
+  "identity-service-relation-changed") keystone_changed;;
 esac

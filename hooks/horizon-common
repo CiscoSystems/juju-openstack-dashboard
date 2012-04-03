@@ -1,8 +1,7 @@
 #!/bin/bash
 
 PACKAGES="openstack-dashboard python-keystoneclient python-memcache memcached"
-LOCAL_SETTINGS="/usr/share/openstack-dashboard/local/local_settings.py"
-LOCAL_SETTING_COMPILED="${LOCAL_SETTINGS}c"
+LOCAL_SETTINGS="/etc/openstack-dashboard/local_settings.py"
 
 function add_ppa() {
   PPA=$(config-get horizon-release)
@@ -30,15 +29,8 @@ function add_ppa() {
     return
   fi
   juju-log "nova: No PPA specified. Falling back to installation from Ubuntu archive."
-
 }
 
-# NOTE: local_settings.py is a python module, it really sucks
-# to manage this via sed.  In the future this should be changed
-# to some template mechanism or managing config variables via
-# a seperate module in /etc/openstack-dashboard/ that could be
-# imported and used in local_settings.  We've got some work todo
-# in packaging for this as well. adam_g 12/23/11
 set_or_update() {
   # set a key = value option in $LOCAL_SETTINGS
   local key=$1 value=$2
@@ -48,12 +40,11 @@ set_or_update() {
     juju-log "set_or_update: $key = $value already set" && return 0
   if grep -q "^$key = " "$LOCAL_SETTINGS" ; then
     juju-log "set_or_update: Setting $key = $value"
-    cp "$LOCAL_SETTINGS" /var/lib/juju/dashboard-local_settings.py.last
+    cp "$LOCAL_SETTINGS" /etc/openstack-dashboard/local_settings.last
     sed -i "s|\(^$key = \).*|\1\"$value\"|g" "$LOCAL_SETTINGS" || return 1
   else
     juju-log "set_or_update: Adding $key = $value"
     echo "$key = \"$value\"" >>$LOCAL_SETTINGS || return 1
   fi 
-  [[ -e $LOCAL_SETTINGS_COMPILED ]] && rm -rf $LOCAL_SETTINGS_COMPILED
   return 0
 }
