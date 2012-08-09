@@ -1,5 +1,6 @@
 name: openstack-dashboard
 summary: a Django web interface to OpenStack
+maintainer: Adam Gandelman <adamg@canonical.com>
 description: |
 
 requires:
