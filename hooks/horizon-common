@@ -5,48 +5,26 @@ CHARM="openstack-dashboard"
 PACKAGES="openstack-dashboard python-keystoneclient python-memcache memcached"
 LOCAL_SETTINGS="/etc/openstack-dashboard/local_settings.py"
 
-function add_ppa() {
-  PPA=$(config-get horizon-release)
-  if [[ "${PPA:0:4}" == "ppa:" ]] ; then
-    juju-log "$CHARM Configuring installation from custom PPA ($PPA)"
-    add-apt-repository -y "$PPA" || exit 1
-    return
-  fi
-  if [[ "${PPA:0:3}" == "deb" ]] ; then
-    juju-log "$CHARM Configuring installation from custom PPA URL ($PPA)"
-    if echo "$PPA" | grep -q "|" ; then
-      # gpg key id tagged to end of url folloed by a |
-      url=$(echo $PPA | cut -d'|' -f1)
-      key=$(echo $PPA | cut -d'|' -f2)
-      if [[ -n "$key" ]] ; then
-        juju-log "Importing repository key: $key"
-        apt-key adv --keyserver keyserver.ubuntu.com --recv-keys "$key" || \
-          juju-log "WARN: Could not import key from keyserver: $key"
-      else
-        juju-log "No repository key specified"
-        url="$PPA"
-      fi
-      add-apt-repository -y "$url"
-    fi
-    return
-  fi
-  juju-log "$CHARM No PPA specified. Falling back to installation from Ubuntu archive."
-}
+if [[ -e "$CHARM_DIR/lib/openstack-common" ]] ; then
+  . $CHARM_DIR/lib/openstack-common
+else
+  juju-log "ERROR: Couldn't load $CHARM_DIR/lib/openstack-common." && exit 1
+fi
 
 set_or_update() {
   # set a key = value option in $LOCAL_SETTINGS
   local key=$1 value=$2
   [[ -z "$key" ]] || [[ -z "$value" ]] &&
-    juju-log "set_or_update: ERROR - missing parameters" && return 1
+    juju-log "$CHARM set_or_update: ERROR - missing parameters" && return 1
   grep -q "^$key = \"$value\"" "$LOCAL_SETTINGS" &&
-    juju-log "set_or_update: $key = $value already set" && return 0
+    juju-log "$CHARM set_or_update: $key = $value already set" && return 0
   if grep -q "^$key = " "$LOCAL_SETTINGS" ; then
-    juju-log "set_or_update: Setting $key = $value"
+    juju-log "$CHARM set_or_update: Setting $key = $value"
     cp "$LOCAL_SETTINGS" /etc/openstack-dashboard/local_settings.last
     sed -i "s|\(^$key = \).*|\1\"$value\"|g" "$LOCAL_SETTINGS" || return 1
   else
-    juju-log "set_or_update: Adding $key = $value"
+    juju-log "$CHARM set_or_update: Adding $key = $value"
     echo "$key = \"$value\"" >>$LOCAL_SETTINGS || return 1
-  fi 
+  fi
   return 0
 }

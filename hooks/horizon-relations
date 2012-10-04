@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e 
+set -e
 
 CHARM_DIR=$(dirname $0)
 ARG0=${0##*/}
@@ -11,7 +11,7 @@ else
 fi
 
 function install_hook {
-  add_ppa
+  configure_install_source $(config-get horizon-release)
   apt-get update
   juju-log "$CHARM: Installing $PACKAGES."
   DEBIAN_FRONTEND=noninteractive apt-get -y install $PACKAGES
