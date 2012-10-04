@@ -1,13 +1,13 @@
 #!/bin/bash
 set -e 
 
-FORMULA_DIR=$(dirname $0)
+CHARM_DIR=$(dirname $0)
 ARG0=${0##*/}
 
-if [[ -e $FORMULA_DIR/horizon-common ]] ; then
-  . $FORMULA_DIR/horizon-common
+if [[ -e $CHARM_DIR/horizon-common ]] ; then
+  . $CHARM_DIR/horizon-common
 else
-  echo "ERROR: Could not load horizon-common from $FORMULA_DIR"
+  echo "ERROR: Could not load horizon-common from $CHARM_DIR"
 fi
 
 function install_hook {
