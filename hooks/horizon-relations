@@ -13,6 +13,7 @@ fi
 function install_hook {
   add_ppa
   apt-get update
+  juju-log "$CHARM: Installing $PACKAGES."
   DEBIAN_FRONTEND=noninteractive apt-get -y install $PACKAGES
   set_or_update CACHE_BACKEND "memcached://127.0.0.1:11211/"
   open-port 80
@@ -40,10 +41,12 @@ function keystone_joined {
 
 function keystone_changed {
   service_url="http://$(relation-get private-address):5000/v2.0"
+  juju-log "$CHARM: Configuring Horizon to access keystone @ $service_url."
   set_or_update OPENSTACK_KEYSTONE_URL "$service_url"
   service apache2 restart
 }
 
+juju-log "$CHARM: Running hook $ARG0."
 case $ARG0 in
   "install") install_hook ;;
   "start") exit 0 ;;
