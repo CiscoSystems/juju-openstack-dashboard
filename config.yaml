@@ -1,8 +1,4 @@
 options:
-    default-role:
-        default: "Member"
-        type: string
-        description: "Keystone role to request from Keystone service"
     horizon-release:
         default: "distro"
         type: string
