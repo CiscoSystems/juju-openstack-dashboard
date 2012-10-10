@@ -46,6 +46,32 @@ function keystone_changed {
   service apache2 restart
 }
 
+function config_changed {
+  local install_src=$(config-get horizon-release)
+  local cur=$(get_os_codename_package "openstack-dashboard")
+  local available=$(get_os_codename_install_source "$install_src")
+
+  if dpkg --compare-versions $(get_os_version_codename "$cur") lt \
+                             $(get_os_version_codename "$available") ; then
+    juju-log "$CHARM: Upgrading OpenStack release: $cur -> $available."
+    do_openstack_upgrade "$install_src" $PACKAGES
+  fi
+
+  # update the web root for the horizon app.
+  local web_root=$(config-get webroot)
+  juju-log "$CHARM: Setting web root for Horizon to $web_root".
+  cp /etc/apache2/conf.d/openstack-dashboard.conf \
+    /var/lib/juju/openstack-dashboard.conf.last
+  awk -v root="$web_root" \
+    '/^WSGIScriptAlias/{$2 = root }'1 \
+    /var/lib/juju/openstack-dashboard.conf.last \
+    >/etc/apache2/conf.d/openstack-dashboard.conf
+  set_or_update LOGIN_URL "$web_root/auth/login"
+  set_or_update LOGIN_REDIRECT_URL "$web_root"
+  service apache2 reload
+
+}
+
 juju-log "$CHARM: Running hook $ARG0."
 case $ARG0 in
   "install") install_hook ;;
@@ -55,4 +81,5 @@ case $ARG0 in
   "shared-db-relation-changed") db_changed;;
   "identity-service-relation-joined") keystone_joined;;
   "identity-service-relation-changed") keystone_changed;;
+  "config-changed") config_changed;;
 esac

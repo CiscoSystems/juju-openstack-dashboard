@@ -7,3 +7,9 @@ options:
           Valid choices are a LP PPA ('ppa:your/ppa') or a URL entry for
           sources.list with an optional GPG key appended after | for import
           from Ubuntu keyserver ('http://host/ubuntu oneiric main|KEYID')
+    webroot:
+        default: "/horizon"
+        type: string
+        description: |
+            Directory where application will be accessible, relative to
+            http://$hostname/.

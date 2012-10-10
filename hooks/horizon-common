@@ -28,3 +28,28 @@ set_or_update() {
   fi
   return 0
 }
+
+do_openstack_upgrade() {
+  local rel="$1"
+  shift
+  local packages=$@
+
+  # Setup apt repository access and kick off the actual package upgrade.
+  configure_install_source "$rel"
+  apt-get update
+  DEBIAN_FRONTEND=noninteractive apt-get --option Dpkg::Options::=--force-confnew -y \
+     install $packages
+
+  # Configure new config files for access to keystone, if a relation exists.
+  r_id=$(relations-id identity-service | head -n1)
+  if [[ -n "$r_id" ]] ; then
+    export JUJU_REMOTE_UNIT=$(relation-list -r $r_id | head -n1)
+    export JUJU_RELATION="identity-service"
+    export JUJU_RELATION_ID="$r_id"
+    local ks_host=$(relation-get -r $r_id private-address)
+    if [[ -n "$ks_host" ]] ; then
+      service_url="http://$(relation-get private-address):5000/v2.0"
+      set_or_update OPENSTACK_KEYSTONE_URL "$service_url"
+    fi
+  fi
+}
