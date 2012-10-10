@@ -2,7 +2,7 @@
 
 CHARM="openstack-dashboard"
 
-PACKAGES="openstack-dashboard python-keystoneclient python-memcache memcached"
+PACKAGES="openstack-dashboard openstack-dashboard-ubuntu-theme python-keystoneclient python-memcache memcached"
 LOCAL_SETTINGS="/etc/openstack-dashboard/local_settings.py"
 
 if [[ -e "$CHARM_DIR/lib/openstack-common" ]] ; then
