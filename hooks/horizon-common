@@ -41,7 +41,7 @@ do_openstack_upgrade() {
      install $packages
 
   # Configure new config files for access to keystone, if a relation exists.
-  r_id=$(relations-id identity-service | head -n1)
+  r_id=$(relation-ids identity-service | head -n1)
   if [[ -n "$r_id" ]] ; then
     export JUJU_REMOTE_UNIT=$(relation-list -r $r_id | head -n1)
     export JUJU_RELATION="identity-service"
