@@ -11,7 +11,7 @@ else
 fi
 
 function install_hook {
-  configure_install_source $(config-get horizon-release)
+  configure_install_source $(config-get openstack-origin)
   apt-get update
   juju-log "$CHARM: Installing $PACKAGES."
   DEBIAN_FRONTEND=noninteractive apt-get -y install $PACKAGES
@@ -47,7 +47,7 @@ function keystone_changed {
 }
 
 function config_changed {
-  local install_src=$(config-get horizon-release)
+  local install_src=$(config-get openstack-origin)
   local cur=$(get_os_codename_package "openstack-dashboard")
   local available=$(get_os_codename_install_source "$install_src")
 
