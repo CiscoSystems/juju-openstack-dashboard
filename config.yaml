@@ -1,13 +1,22 @@
 options:
-    default-role:
-        default: "Member"
-        type: string
-        description: "Keystone role to request from Keystone service"
-    horizon-release:
-        default: "distro"
+   openstack-origin:
+        default: distro
         type: string
         description: |
-          Installation source. Default installs packages from Ubuntu archive.
-          Valid choices are a LP PPA ('ppa:your/ppa') or a URL entry for
-          sources.list with an optional GPG key appended after | for import
-          from Ubuntu keyserver ('http://host/ubuntu oneiric main|KEYID')
+          Repository from which to install.  May be one of the following:
+          distro (default), ppa:somecustom/ppa, a deb url sources entry,
+          or a supported Cloud Archive release pocket.
+
+          Supported Cloud Archive sources include: cloud:precise-folsom,
+          cloud:precise-folsom/updates, cloud:precise-folsom/staging,
+          cloud:precise-folsom/proposed.
+
+          Note that updating this setting to a source that is known to
+          provide a later version of OpenStack will trigger a software
+          upgrade.
+   webroot:
+        default: "/horizon"
+        type: string
+        description: |
+            Directory where application will be accessible, relative to
+            http://$hostname/.

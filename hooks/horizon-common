@@ -1,50 +1,55 @@
 #!/bin/bash
 
-PACKAGES="openstack-dashboard python-keystoneclient python-memcache memcached"
+CHARM="openstack-dashboard"
+
+PACKAGES="openstack-dashboard openstack-dashboard-ubuntu-theme python-keystoneclient python-memcache memcached"
 LOCAL_SETTINGS="/etc/openstack-dashboard/local_settings.py"
 
-function add_ppa() {
-  PPA=$(config-get horizon-release)
-  if [[ "${PPA:0:4}" == "ppa:" ]] ; then
-    juju-log "nova: Configuring installation from custom PPA ($PPA)"
-    add-apt-repository -y "$PPA" || exit 1
-    return
-  fi
-  if [[ "${PPA:0:3}" == "deb" ]] ; then
-    juju-log "nova: Configuring installation from custom PPA URL ($PPA)"
-    if echo "$PPA" | grep -q "|" ; then
-      # gpg key id tagged to end of url folloed by a |
-      url=$(echo $PPA | cut -d'|' -f1)
-      key=$(echo $PPA | cut -d'|' -f2)
-      if [[ -n "$key" ]] ; then
-        juju-log "Importing repository key: $key"
-        apt-key adv --keyserver keyserver.ubuntu.com --recv-keys "$key" || \
-          juju-log "WARN: Could not import key from keyserver: $key"
-      else
-        juju-log "No repository key specified"
-        url="$PPA"
-      fi
-      add-apt-repository -y "$url"
-    fi
-    return
-  fi
-  juju-log "nova: No PPA specified. Falling back to installation from Ubuntu archive."
-}
+if [[ -e "$CHARM_DIR/lib/openstack-common" ]] ; then
+  . $CHARM_DIR/lib/openstack-common
+else
+  juju-log "ERROR: Couldn't load $CHARM_DIR/lib/openstack-common." && exit 1
+fi
 
 set_or_update() {
   # set a key = value option in $LOCAL_SETTINGS
   local key=$1 value=$2
   [[ -z "$key" ]] || [[ -z "$value" ]] &&
-    juju-log "set_or_update: ERROR - missing parameters" && return 1
+    juju-log "$CHARM set_or_update: ERROR - missing parameters" && return 1
   grep -q "^$key = \"$value\"" "$LOCAL_SETTINGS" &&
-    juju-log "set_or_update: $key = $value already set" && return 0
+    juju-log "$CHARM set_or_update: $key = $value already set" && return 0
   if grep -q "^$key = " "$LOCAL_SETTINGS" ; then
-    juju-log "set_or_update: Setting $key = $value"
+    juju-log "$CHARM set_or_update: Setting $key = $value"
     cp "$LOCAL_SETTINGS" /etc/openstack-dashboard/local_settings.last
     sed -i "s|\(^$key = \).*|\1\"$value\"|g" "$LOCAL_SETTINGS" || return 1
   else
-    juju-log "set_or_update: Adding $key = $value"
+    juju-log "$CHARM set_or_update: Adding $key = $value"
     echo "$key = \"$value\"" >>$LOCAL_SETTINGS || return 1
-  fi 
+  fi
   return 0
+}
+
+do_openstack_upgrade() {
+  local rel="$1"
+  shift
+  local packages=$@
+
+  # Setup apt repository access and kick off the actual package upgrade.
+  configure_install_source "$rel"
+  apt-get update
+  DEBIAN_FRONTEND=noninteractive apt-get --option Dpkg::Options::=--force-confnew -y \
+     install $packages
+
+  # Configure new config files for access to keystone, if a relation exists.
+  r_id=$(relation-ids identity-service | head -n1)
+  if [[ -n "$r_id" ]] ; then
+    export JUJU_REMOTE_UNIT=$(relation-list -r $r_id | head -n1)
+    export JUJU_RELATION="identity-service"
+    export JUJU_RELATION_ID="$r_id"
+    local ks_host=$(relation-get -r $r_id private-address)
+    if [[ -n "$ks_host" ]] ; then
+      service_url="http://$ks_host:5000/v2.0"
+      set_or_update OPENSTACK_KEYSTONE_URL "$service_url"
+    fi
+  fi
 }
