@@ -11,7 +11,7 @@ else
 fi
 
 function install_hook {
-  configure_install_source $(config-get openstack-origin)
+  configure_install_source "$(config-get openstack-origin)"
   apt-get update
   juju-log "$CHARM: Installing $PACKAGES."
   DEBIAN_FRONTEND=noninteractive apt-get -y install $PACKAGES
