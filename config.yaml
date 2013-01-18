@@ -20,3 +20,9 @@ options:
         description: |
             Directory where application will be accessible, relative to
             http://$hostname/.
+   default-role:
+        default: "Member"
+        type: string
+        description: |
+            Default role for Horizon operations that will be created in
+            Keystone upon introduction of an identity-service relation.

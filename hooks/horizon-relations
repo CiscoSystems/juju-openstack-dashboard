@@ -35,8 +35,12 @@ function keystone_joined {
   # service=None lets keystone know we don't need anything entered
   # into the service catalog.  we only really care about getting the
   # private-address from the relation
-  relation-set service="None" region="None" public_url="None" \
-               admin_url="None" internal_url="None"
+  local relid="$1"
+  local rarg=""
+  [[ -n "$relid" ]] && rarg="-r $relid"
+  relation-set $rarg service="None" region="None" public_url="None" \
+               admin_url="None" internal_url="None" \
+               requested_roles="$(config-get default-role)"
 }
 
 function keystone_changed {
@@ -68,6 +72,15 @@ function config_changed {
     >/etc/apache2/conf.d/openstack-dashboard.conf
   set_or_update LOGIN_URL "$web_root/auth/login"
   set_or_update LOGIN_REDIRECT_URL "$web_root"
+
+  # Set default role and trigger a identity-service relation event to
+  # ensure role is created in keystone.
+  set_or_update OPENSTACK_KEYSTONE_DEFAULT_ROLE "$(config-get default-role)"
+  local relids="$(relation-ids identity-service)"
+  for relid in $relids ; do
+    keystone_joined "$relid"
+  done
+
   service apache2 reload
 
 }
