@@ -8,3 +8,9 @@ requires:
     interface: mysql
   identity-service:
     interface: keystone
+  ha:
+    interface: hacluster
+    scope: container
+peers:
+  cluster:
+    interface: openstack-dashboard-ha
