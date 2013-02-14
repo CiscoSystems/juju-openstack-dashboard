@@ -44,8 +44,8 @@ function keystone_joined {
 }
 
 function keystone_changed {
-  local service_host=$(config-get service_host)
-  local service_port=$(config-get service_port)
+  local service_host=$(relation-get service_host)
+  local service_port=$(relation-get service_port)
   if [ -z "${service_host}" ] || [ -z "${service_port}" ]; then
     juju-log "Insufficient information to configure keystone url"
     exit 0
