@@ -53,3 +53,28 @@ do_openstack_upgrade() {
     fi
   fi
 }
+
+configure_memcached() {
+  tfile=`mktemp /etc/.memcached.conf.XXXXXXX`
+  cat > $tfile << EOF
+# memcache config file - juju openstack-dashboard
+-d
+logfile /var/log/memcached.log
+-m 64
+-p 11211
+-u memcache
+-l 0.0.0.0
+# TODO: Enable SASL auth
+# -S
+EOF
+  new_hash=`md5sum $tfile|cut -d' ' -f1`
+  old_hash=`md5sum /etc/memcached.conf|cut -d' ' -f1`
+  if [ "$new_hash" != "$old_hash" ]; then
+    juju-log "Reconfiguring memcache for clustering"
+    # TODO: setup SASL authentication
+    mv -f /etc/memcached.conf /etc/memcached.conf.$old_hash
+    mv -f $tfile /etc/memcached.conf
+    service memcached restart
+  fi
+}
+
