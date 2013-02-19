@@ -46,9 +46,10 @@ do_openstack_upgrade() {
     export JUJU_REMOTE_UNIT=$(relation-list -r $r_id | head -n1)
     export JUJU_RELATION="identity-service"
     export JUJU_RELATION_ID="$r_id"
-    local ks_host=$(relation-get -r $r_id private-address)
-    if [[ -n "$ks_host" ]] ; then
-      service_url="http://$ks_host:5000/v2.0"
+    local service_host=$(relation-get -r $r_id service_host)
+    local service_port=$(relation-get -r $r_id service_port)
+    if [[ -n "$service_host" ]] && [[ -n "$service_port" ]] ; then
+      service_url="http://$service_host:$service_port/v2.0"
       set_or_update OPENSTACK_KEYSTONE_URL "$service_url"
     fi
   fi
