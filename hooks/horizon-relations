@@ -93,8 +93,7 @@ function config_changed {
 
 function cluster_changed() {
   configure_haproxy "openstack_dashboard:80"
-  service haproxy reload || :
-  configure_memcached
+  service haproxy reload
 }
 
 function ha_relation_joined() {
