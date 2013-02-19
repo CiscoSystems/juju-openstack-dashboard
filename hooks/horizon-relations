@@ -93,6 +93,7 @@ function config_changed {
 
 function cluster_changed() {
   configure_haproxy "openstack_dashboard:80"
+  service haproxy reload || :
   configure_memcached
 }
 
@@ -118,13 +119,13 @@ function ha_relation_joined() {
     init_services="{
 'res_horizon_haproxy':'haproxy'
 }"
-    groups="{
-'grp_horizon_haproxy':'res_horizon_vip res_horizon_haproxy'
+    clones="{
+'clone_horizon_haproxy':'res_horizon_haproxy'
 }"
     relation-set corosync_bindiface=$corosync_bindiface \
       corosync_mcastport=$corosync_mcastport \
       resources="$resources" resource_params="$resource_params" \
-      init_services="$init_services" groups="$groups"
+      init_services="$init_services" clones="$clones"
   else
     juju-log "Insufficient configuration data to configure hacluster"
     exit 1
