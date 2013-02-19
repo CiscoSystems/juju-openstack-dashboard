@@ -97,6 +97,13 @@ function cluster_changed() {
 }
 
 function ha_relation_joined() {
+  # Reconfigure Apache to listen -10 and start HAProxy
+  # to front Apache until fully clustered
+  configure_apache "70"
+  service apache2 restart
+  configure_haproxy "openstack_dashboard:80"
+  service haproxy start
+  # Configure HA Cluster
   local corosync_bindiface=`config-get ha-bindiface`
   local corosync_mcastport=`config-get ha-mcastport`
   local vip=`config-get vip`
@@ -131,15 +138,6 @@ function ha_relation_joined() {
   fi
 }
 
-
-function ha_relation_changed() {
-  local clustered=`relation-get clustered`
-  if [ -n "$clustered" ]; then
-    open-port 10080
-  fi
-}
-
-
 juju-log "$CHARM: Running hook $ARG0."
 case $ARG0 in
   "install") install_hook ;;
@@ -153,5 +151,4 @@ case $ARG0 in
   "cluster-relation-changed") cluster_changed ;;
   "cluster-relation-departed") cluster_changed ;;
   "ha-relation-joined") ha_relation_joined ;;
-  "ha-relation-changed") ha_relation_changed ;;
 esac

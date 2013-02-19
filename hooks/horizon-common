@@ -54,3 +54,15 @@ do_openstack_upgrade() {
     fi
   fi
 }
+
+configure_apache() {
+  local listen_port=$1
+  if [ -z "$listen_port" ]; then
+    echo "Please provider a port to reconfigure to".
+    exit 1
+  fi
+  # Reconfigure to listen on provided port
+  sed -i -e "s/^NameVirtualHost.*/NameVirtualHost *:$listen_port/g" \
+         -e "s/^Listen.*/Listen $listen_port/g" \
+         /etc/apache2/ports.conf
+}

@@ -364,20 +364,20 @@ listen stats :8888
 EOF
   for service in $@; do
     local service_name=$(echo $service | cut -d : -f 1)
-    local api_listen_port=$(echo $service | cut -d : -f 2)
-    local haproxy_listen_port=$(($api_listen_port + 10000))
+    local haproxy_listen_port=$(echo $service | cut -d : -f 2)
+    local service_listen_port=$(($haproxy_listen_port - 10))
     cat >> $HAPROXY_CFG << EOF
 listen $service_name 0.0.0.0:$haproxy_listen_port
   balance roundrobin
   option tcplog
-  server $name $address:$api_listen_port check
+  server $name $address:$service_listen_port check
 EOF
     for r_id in `relation-ids cluster`; do
       for unit in `relation-list -r $r_id`; do
         local unit_name=${unit////-}
         local unit_address=`relation-get -r $r_id private-address $unit`
         if [ -n "$unit_address" ]; then
-          echo "  server $unit_name $unit_address:$api_listen_port check" \
+          echo "  server $unit_name $unit_address:$service_listen_port check" \
             >> $HAPROXY_CFG
         fi
       done
