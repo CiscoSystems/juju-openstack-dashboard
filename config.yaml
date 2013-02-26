@@ -49,3 +49,9 @@ options:
         description: |
           Default multicast port number that will be used to communicate between
           HA Cluster nodes.
+    ssl_cert:
+        type: string
+        description: SSL certificate to install and use for the dashboard.
+    ssl_key:
+        type: string
+        description: SSL key to use with certificate specified as ssl_cert.

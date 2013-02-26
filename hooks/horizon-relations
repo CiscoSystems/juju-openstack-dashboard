@@ -50,6 +50,12 @@ function keystone_changed {
     juju-log "Insufficient information to configure keystone url"
     exit 0
   fi
+  local ca_cert=$(relation-get ca_cert)
+  if [ -n "$ca_cert" ]; then
+    juju-log "Installing Keystone supplied CA cert."
+    echo $ca_cert | base64 -di > /usr/local/share/ca-certificates/keystone_juju_ca_cert.crt
+    update-ca-certificates --fresh
+  fi
   service_url="http://${service_host}:${service_port}/v2.0"
   juju-log "$CHARM: Configuring Horizon to access keystone @ $service_url."
   set_or_update OPENSTACK_KEYSTONE_URL "$service_url"
@@ -87,22 +93,21 @@ function config_changed {
     keystone_joined "$relid"
   done
 
-  service apache2 reload
-
+  # Configure default HAProxy + Apache config
+  configure_apache "70"
+  # Setup HTTPS if cert and key provided
+  setup_https "80:443"
+  service apache2 restart
+  configure_haproxy "openstack_dashboard:80:70"
+  service haproxy restart
 }
 
 function cluster_changed() {
-  configure_haproxy "openstack_dashboard:80"
+  configure_haproxy "openstack_dashboard:80:70"
   service haproxy reload
 }
 
 function ha_relation_joined() {
-  # Reconfigure Apache to listen -10 and start HAProxy
-  # to front Apache until fully clustered
-  configure_apache "70"
-  service apache2 restart
-  configure_haproxy "openstack_dashboard:80"
-  service haproxy start
   # Configure HA Cluster
   local corosync_bindiface=`config-get ha-bindiface`
   local corosync_mcastport=`config-get ha-mcastport`
@@ -126,7 +131,7 @@ function ha_relation_joined() {
 'res_horizon_haproxy':'haproxy'
 }"
     clones="{
-'clone_horizon_haproxy':'res_horizon_haproxy'
+'cl_horizon_haproxy':'res_horizon_haproxy'
 }"
     relation-set corosync_bindiface=$corosync_bindiface \
       corosync_mcastport=$corosync_mcastport \
