@@ -348,8 +348,8 @@ defaults
   retries 3
   timeout queue 1000
   timeout connect 1000
-  timeout client 1000
-  timeout server 1000
+  timeout client 30000
+  timeout server 30000
 
 listen stats :8888
   mode http
