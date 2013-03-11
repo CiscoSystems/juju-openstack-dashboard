@@ -93,6 +93,11 @@ function config_changed {
     keystone_joined "$relid"
   done
 
+  if [ "$(config-get offline-compression)" != "True" ]; then
+    set_or_update COMPRESS_OFFLINE "False"
+    apt-get install -y node node-less
+  fi
+
   # Configure default HAProxy + Apache config
   if [ -n "$(config-get ssl_cert)" ] && \
      [ -n "$(config-get ssl_key)" ]; then

@@ -55,3 +55,7 @@ options:
     ssl_key:
         type: string
         description: SSL key to use with certificate specified as ssl_cert.
+    offline-compression:
+        type: string
+        default: "True"
+        description: Use pre-generated Less compiled JS and CSS.
