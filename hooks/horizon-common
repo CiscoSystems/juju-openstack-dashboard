@@ -22,14 +22,14 @@ set_or_update() {
   if grep -q "^$key = " "$LOCAL_SETTINGS" ; then
     juju-log "$CHARM set_or_update: Setting $key = $value"
     cp "$LOCAL_SETTINGS" /etc/openstack-dashboard/local_settings.last
-    if [ $value == "True" ] || [ $value == "False" ]; then
+    if [ "$value" == "True" ] || [ "$value" == "False" ]; then
       sed -i "s|\(^$key = \).*|\1$value|g" "$LOCAL_SETTINGS" || return 1
     else
       sed -i "s|\(^$key = \).*|\1\"$value\"|g" "$LOCAL_SETTINGS" || return 1
     fi
   else
     juju-log "$CHARM set_or_update: Adding $key = $value"
-    if [ $value == "True" ] || [ $value == "False" ]; then
+    if [ "$value" == "True" ] || [ "$value" == "False" ]; then
       echo "$key = $value" >>$LOCAL_SETTINGS || return 1
     else
       echo "$key = \"$value\"" >>$LOCAL_SETTINGS || return 1
