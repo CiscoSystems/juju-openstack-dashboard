@@ -57,9 +57,9 @@ options:
         description: SSL key to use with certificate specified as ssl_cert.
     offline-compression:
         type: string
-        default: True
+        default: yes
         description: Use pre-generated Less compiled JS and CSS.
     debug:
         type: string
-        default: False
+        default: no
         description: Show Django debug messages.

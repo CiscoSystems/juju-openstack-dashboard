@@ -93,8 +93,8 @@ function config_changed {
     keystone_joined "$relid"
   done
 
-  if [ "$(config-get offline-compression)" != "True" ]; then
-    set_or_update COMPRESS_OFFLINE "False"
+  if [ "$(config-get offline-compression)" != "yes" ]; then
+    set_or_update COMPRESS_OFFLINE False
     apt-get install -y nodejs node-less
   fi
 
@@ -104,7 +104,11 @@ function config_changed {
     configure_apache_cert "$(config-get ssl_cert)" "$(config-get ssl_key)"
   fi
 
-  set_or_update DEBUG "$(config-get debug)"
+  if [ -n "$(config-get debug)" != "yes" ]; then
+    set_or_update DEBUG False
+  else
+    set_or_update DEBUG True
+  fi
 
   # Reconfigure Apache Ports
   configure_apache "80:70" "443:433"
