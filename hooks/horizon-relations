@@ -94,16 +94,19 @@ function config_changed {
   done
 
   # Configure default HAProxy + Apache config
-  configure_apache "70"
-  # Setup HTTPS if cert and key provided
-  setup_https "80:443"
+  if [ -n "$(config-get ssl_cert)" ] && \
+     [ -n "$(config-get ssl_key)" ]; then
+    configure_apache_cert "$(config-get ssl_cert)" "$(config-get ssl_key)"
+  fi
+  # Reconfigure Apache Ports
+  configure_apache "80:70" "443:433"
   service apache2 restart
-  configure_haproxy "openstack_dashboard:80:70"
+  configure_haproxy "dash_insecure:80:70:http dash_secure:443:433:tcp"
   service haproxy restart
 }
 
 function cluster_changed() {
-  configure_haproxy "openstack_dashboard:80:70"
+  configure_haproxy "dash_insecure:80:70:http dash_secure:443:433:tcp"
   service haproxy reload
 }
 

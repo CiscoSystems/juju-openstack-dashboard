@@ -1,4 +1,5 @@
 #!/bin/bash
+# vim: set ts=2:et
 
 CHARM="openstack-dashboard"
 
@@ -56,13 +57,27 @@ do_openstack_upgrade() {
 }
 
 configure_apache() {
-  local listen_port=$1
-  if [ -z "$listen_port" ]; then
-    echo "Please provider a port to reconfigure to".
-    exit 1
-  fi
   # Reconfigure to listen on provided port
-  sed -i -e "s/^NameVirtualHost.*/NameVirtualHost *:$listen_port/g" \
-         -e "s/^Listen.*/Listen $listen_port/g" \
-         /etc/apache2/ports.conf
+  a2ensite default-ssl || :
+  a2enmod ssl || :
+  for ports in $@; do
+    from_port=$(echo $ports | cut -d : -f 1)
+    to_port=$(echo $ports | cut -d : -f 2)
+    sed -i -e "s/$from_port/$to_port/g" /etc/apache2/ports.conf
+    for site in $(ls -1 /etc/apache2/sites-available); do
+      sed -i -e "s/$from_port/$to_port/g" \
+        /etc/apache2/sites-available/$site
+    done
+  done
+}
+
+configure_apache_cert() {
+  cert=$1
+  key=$2
+  echo $cert | base64 -d > /etc/ssl/certs/dashboard.cert
+  echo $key | base64 -d > /etc/ssl/private/dashboard.key
+  chmod 0600 /etc/ssl/private/dashboard.key
+  sed -i -e "s|\(.*SSLCertificateFile\).*|\1 /etc/ssl/certs/dashboard.cert|g" \
+         -e "s|\(.*SSLCertificateKeyFile\).*|\1 /etc/ssl/private/dashboard.key|g" \
+          /etc/apache2/sites-available/default-ssl
 }
