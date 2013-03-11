@@ -103,6 +103,9 @@ function config_changed {
      [ -n "$(config-get ssl_key)" ]; then
     configure_apache_cert "$(config-get ssl_cert)" "$(config-get ssl_key)"
   fi
+
+  set_or_update DEBUG "$(config-get debug)"
+
   # Reconfigure Apache Ports
   configure_apache "80:70" "443:433"
   service apache2 restart
