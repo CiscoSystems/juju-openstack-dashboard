@@ -17,8 +17,13 @@ set_or_update() {
   local key=$1 value=$2
   [[ -z "$key" ]] || [[ -z "$value" ]] &&
     juju-log "$CHARM set_or_update: ERROR - missing parameters" && return 1
-  grep -q "^$key = \"$value\"" "$LOCAL_SETTINGS" &&
-    juju-log "$CHARM set_or_update: $key = $value already set" && return 0
+  if [ "$value" == "True" ] || [ "$value" == "False" ]; then
+    grep -q "^$key = $value" "$LOCAL_SETTINGS" &&
+      juju-log "$CHARM set_or_update: $key = $value already set" && return 0
+  else
+    grep -q "^$key = \"$value\"" "$LOCAL_SETTINGS" &&
+      juju-log "$CHARM set_or_update: $key = $value already set" && return 0
+  fi
   if grep -q "^$key = " "$LOCAL_SETTINGS" ; then
     juju-log "$CHARM set_or_update: Setting $key = $value"
     cp "$LOCAL_SETTINGS" /etc/openstack-dashboard/local_settings.last

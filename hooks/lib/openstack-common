@@ -375,7 +375,7 @@ EOF
 listen $service_name 0.0.0.0:$haproxy_listen_port
   balance roundrobin
   mode $mode
-  option tcplog
+  option ${mode}log
   server $name $address:$api_listen_port check
 EOF
     local r_id=""
