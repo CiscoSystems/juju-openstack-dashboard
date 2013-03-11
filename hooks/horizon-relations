@@ -96,6 +96,8 @@ function config_changed {
   if [ "$(config-get offline-compression)" != "yes" ]; then
     set_or_update COMPRESS_OFFLINE False
     apt-get install -y nodejs node-less
+  else
+    set_or_update COMPRESS_OFFLINE True
   fi
 
   # Configure default HAProxy + Apache config
