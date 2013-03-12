@@ -87,8 +87,8 @@ configure_apache() {
 configure_apache_cert() {
   cert=$1
   key=$2
-  echo $cert | base64 -d > /etc/ssl/certs/dashboard.cert
-  echo $key | base64 -d > /etc/ssl/private/dashboard.key
+  echo $cert | base64 -di > /etc/ssl/certs/dashboard.cert
+  echo $key | base64 -di > /etc/ssl/private/dashboard.key
   chmod 0600 /etc/ssl/private/dashboard.key
   sed -i -e "s|\(.*SSLCertificateFile\).*|\1 /etc/ssl/certs/dashboard.cert|g" \
          -e "s|\(.*SSLCertificateKeyFile\).*|\1 /etc/ssl/private/dashboard.key|g" \
