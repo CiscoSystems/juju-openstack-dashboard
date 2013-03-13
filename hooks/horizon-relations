@@ -85,6 +85,14 @@ function config_changed {
   set_or_update LOGIN_URL "$web_root/auth/login"
   set_or_update LOGIN_REDIRECT_URL "$web_root"
 
+  # Save our scriptrc env variables for health checks
+  declare -a env_vars=(
+      'OPENSTACK_URL_HORIZON="http://localhost'$web_root'|Login+-+OpenStack"'
+      'OPENSTACK_SERVICE_HORIZON=apache2'
+      'OPENSTACK_PORT_HORIZON=80')
+  save_script_rc ${env_vars[@]}
+
+
   # Set default role and trigger a identity-service relation event to
   # ensure role is created in keystone.
   set_or_update OPENSTACK_KEYSTONE_DEFAULT_ROLE "$(config-get default-role)"
