@@ -50,6 +50,12 @@ function keystone_changed {
     juju-log "Insufficient information to configure keystone url"
     exit 0
   fi
+  local ca_cert=$(relation-get ca_cert)
+  if [ -n "$ca_cert" ]; then
+    juju-log "Installing Keystone supplied CA cert."
+    echo $ca_cert | base64 -di > /usr/local/share/ca-certificates/keystone_juju_ca_cert.crt
+    update-ca-certificates --fresh
+  fi
   service_url="http://${service_host}:${service_port}/v2.0"
   juju-log "$CHARM: Configuring Horizon to access keystone @ $service_url."
   set_or_update OPENSTACK_KEYSTONE_URL "$service_url"
@@ -95,16 +101,39 @@ function config_changed {
     keystone_joined "$relid"
   done
 
-  service apache2 reload
+  if [ "$(config-get offline-compression)" != "yes" ]; then
+    set_or_update COMPRESS_OFFLINE False
+    apt-get install -y nodejs node-less
+  else
+    set_or_update COMPRESS_OFFLINE True
+  fi
 
+  # Configure default HAProxy + Apache config
+  if [ -n "$(config-get ssl_cert)" ] && \
+     [ -n "$(config-get ssl_key)" ]; then
+    configure_apache_cert "$(config-get ssl_cert)" "$(config-get ssl_key)"
+  fi
+
+  if [ "$(config-get debug)" != "yes" ]; then
+    set_or_update DEBUG False
+  else
+    set_or_update DEBUG True
+  fi
+
+  # Reconfigure Apache Ports
+  configure_apache "80:70" "443:433"
+  service apache2 restart
+  configure_haproxy "dash_insecure:80:70:http dash_secure:443:433:tcp"
+  service haproxy restart
 }
 
 function cluster_changed() {
-  configure_haproxy "openstack_dashboard:80"
-  configure_memcached
+  configure_haproxy "dash_insecure:80:70:http dash_secure:443:433:tcp"
+  service haproxy reload
 }
 
 function ha_relation_joined() {
+  # Configure HA Cluster
   local corosync_bindiface=`config-get ha-bindiface`
   local corosync_mcastport=`config-get ha-mcastport`
   local vip=`config-get vip`
@@ -126,27 +155,18 @@ function ha_relation_joined() {
     init_services="{
 'res_horizon_haproxy':'haproxy'
 }"
-    groups="{
-'grp_horizon_haproxy':'res_horizon_vip res_horizon_haproxy'
+    clones="{
+'cl_horizon_haproxy':'res_horizon_haproxy'
 }"
     relation-set corosync_bindiface=$corosync_bindiface \
       corosync_mcastport=$corosync_mcastport \
       resources="$resources" resource_params="$resource_params" \
-      init_services="$init_services" groups="$groups"
+      init_services="$init_services" clones="$clones"
   else
     juju-log "Insufficient configuration data to configure hacluster"
     exit 1
   fi
 }
-
-
-function ha_relation_changed() {
-  local clustered=`relation-get clustered`
-  if [ -n "$clustered" ]; then
-    open-port 10080
-  fi
-}
-
 
 juju-log "$CHARM: Running hook $ARG0."
 case $ARG0 in
@@ -161,5 +181,4 @@ case $ARG0 in
   "cluster-relation-changed") cluster_changed ;;
   "cluster-relation-departed") cluster_changed ;;
   "ha-relation-joined") ha_relation_joined ;;
-  "ha-relation-changed") ha_relation_changed ;;
 esac

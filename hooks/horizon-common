@@ -1,4 +1,5 @@
 #!/bin/bash
+# vim: set ts=2:et
 
 CHARM="openstack-dashboard"
 
@@ -16,15 +17,28 @@ set_or_update() {
   local key=$1 value=$2
   [[ -z "$key" ]] || [[ -z "$value" ]] &&
     juju-log "$CHARM set_or_update: ERROR - missing parameters" && return 1
-  grep -q "^$key = \"$value\"" "$LOCAL_SETTINGS" &&
-    juju-log "$CHARM set_or_update: $key = $value already set" && return 0
+  if [ "$value" == "True" ] || [ "$value" == "False" ]; then
+    grep -q "^$key = $value" "$LOCAL_SETTINGS" &&
+      juju-log "$CHARM set_or_update: $key = $value already set" && return 0
+  else
+    grep -q "^$key = \"$value\"" "$LOCAL_SETTINGS" &&
+      juju-log "$CHARM set_or_update: $key = $value already set" && return 0
+  fi
   if grep -q "^$key = " "$LOCAL_SETTINGS" ; then
     juju-log "$CHARM set_or_update: Setting $key = $value"
     cp "$LOCAL_SETTINGS" /etc/openstack-dashboard/local_settings.last
-    sed -i "s|\(^$key = \).*|\1\"$value\"|g" "$LOCAL_SETTINGS" || return 1
+    if [ "$value" == "True" ] || [ "$value" == "False" ]; then
+      sed -i "s|\(^$key = \).*|\1$value|g" "$LOCAL_SETTINGS" || return 1
+    else
+      sed -i "s|\(^$key = \).*|\1\"$value\"|g" "$LOCAL_SETTINGS" || return 1
+    fi
   else
     juju-log "$CHARM set_or_update: Adding $key = $value"
-    echo "$key = \"$value\"" >>$LOCAL_SETTINGS || return 1
+    if [ "$value" == "True" ] || [ "$value" == "False" ]; then
+      echo "$key = $value" >>$LOCAL_SETTINGS || return 1
+    else
+      echo "$key = \"$value\"" >>$LOCAL_SETTINGS || return 1
+    fi
   fi
   return 0
 }
@@ -46,35 +60,37 @@ do_openstack_upgrade() {
     export JUJU_REMOTE_UNIT=$(relation-list -r $r_id | head -n1)
     export JUJU_RELATION="identity-service"
     export JUJU_RELATION_ID="$r_id"
-    local ks_host=$(relation-get -r $r_id private-address)
-    if [[ -n "$ks_host" ]] ; then
-      service_url="http://$ks_host:5000/v2.0"
+    local service_host=$(relation-get -r $r_id service_host)
+    local service_port=$(relation-get -r $r_id service_port)
+    if [[ -n "$service_host" ]] && [[ -n "$service_port" ]] ; then
+      service_url="http://$service_host:$service_port/v2.0"
       set_or_update OPENSTACK_KEYSTONE_URL "$service_url"
     fi
   fi
 }
 
-configure_memcached() {
-  tfile=`mktemp /etc/.memcached.conf.XXXXXXX`
-  cat > $tfile << EOF
-# memcache config file - juju openstack-dashboard
--d
-logfile /var/log/memcached.log
--m 64
--p 11211
--u memcache
--l 0.0.0.0
-# TODO: Enable SASL auth
-# -S
-EOF
-  new_hash=`md5sum $tfile|cut -d' ' -f1`
-  old_hash=`md5sum /etc/memcached.conf|cut -d' ' -f1`
-  if [ "$new_hash" != "$old_hash" ]; then
-    juju-log "Reconfiguring memcache for clustering"
-    # TODO: setup SASL authentication
-    mv -f /etc/memcached.conf /etc/memcached.conf.$old_hash
-    mv -f $tfile /etc/memcached.conf
-    service memcached restart
-  fi
+configure_apache() {
+  # Reconfigure to listen on provided port
+  a2ensite default-ssl || :
+  a2enmod ssl || :
+  for ports in $@; do
+    from_port=$(echo $ports | cut -d : -f 1)
+    to_port=$(echo $ports | cut -d : -f 2)
+    sed -i -e "s/$from_port/$to_port/g" /etc/apache2/ports.conf
+    for site in $(ls -1 /etc/apache2/sites-available); do
+      sed -i -e "s/$from_port/$to_port/g" \
+        /etc/apache2/sites-available/$site
+    done
+  done
 }
 
+configure_apache_cert() {
+  cert=$1
+  key=$2
+  echo $cert | base64 -di > /etc/ssl/certs/dashboard.cert
+  echo $key | base64 -di > /etc/ssl/private/dashboard.key
+  chmod 0600 /etc/ssl/private/dashboard.key
+  sed -i -e "s|\(.*SSLCertificateFile\).*|\1 /etc/ssl/certs/dashboard.cert|g" \
+         -e "s|\(.*SSLCertificateKeyFile\).*|\1 /etc/ssl/private/dashboard.key|g" \
+          /etc/apache2/sites-available/default-ssl
+}

@@ -49,3 +49,28 @@ options:
         description: |
           Default multicast port number that will be used to communicate between
           HA Cluster nodes.
+    # User provided SSL cert and key
+    ssl_cert:
+        type: string
+        description: |
+          Base64 encoded SSL certificate to install and use for API ports.
+          .
+             juju set swift-proxy ssl_cert="$(cat cert | base64)" \
+                                  ssl_key="$(cat key | base64)"
+          .
+          Setting this value (and ssl_key) will enable reverse proxying, point
+          Swifts's entry in the Keystone catalog to use https, and override
+          any certficiate and key issued by Keystone (if it is configured to
+          do so).
+    ssl_key:
+        type: string
+        description: |
+          Base64 encoded SSL key to use with certificate specified as ssl_cert.
+    offline-compression:
+        type: string
+        default: "yes"
+        description: Use pre-generated Less compiled JS and CSS.
+    debug:
+        type: string
+        default: "no"
+        description: Show Django debug messages.
