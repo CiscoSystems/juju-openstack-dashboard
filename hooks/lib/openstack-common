@@ -329,6 +329,8 @@ HAPROXY_DEFAULT=/etc/default/haproxy
 #   assumes the name of the peer relation is 'cluster' and that every
 #   service unit in the peer relation is running the same services.
 #
+#   Services that do not specify :mode in parameter will default to http.
+#
 # Example
 #   configure_haproxy cinder_api:8776:8756:tcp nova_api:8774:8764:http
 ##########################################################################
@@ -369,6 +371,7 @@ EOF
     local haproxy_listen_port=$(echo $service | cut -d : -f 2)
     local api_listen_port=$(echo $service | cut -d : -f 3)
     local mode=$(echo $service | cut -d : -f 4)
+    [[ -z "$mode" ]] && mode="http"
     juju-log "Adding haproxy configuration entry for $service "\
              "($haproxy_listen_port -> $api_listen_port)"
     cat >> $HAPROXY_CFG << EOF
