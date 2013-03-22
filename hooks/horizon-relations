@@ -121,9 +121,9 @@ function config_changed {
   fi
 
   if [ "$(config-get ubuntu-theme)" != "yes" ]; then
-    apt-get purge openstack-dashboard-ubuntu-theme || :
+    apt-get -y purge openstack-dashboard-ubuntu-theme || :
   else
-    apt-get install openstack-dashboard-ubuntu-theme
+    apt-get -y install openstack-dashboard-ubuntu-theme
   fi
 
   # Reconfigure Apache Ports
