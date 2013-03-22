@@ -120,6 +120,12 @@ function config_changed {
     set_or_update DEBUG True
   fi
 
+  if [ "$(config-get ubuntu-theme)" != "yes" ]; then
+    apt-get purge openstack-dashboard-ubuntu-theme || :
+  else
+    apt-get install openstack-dashboard-ubuntu-theme
+  fi
+
   # Reconfigure Apache Ports
   configure_apache "80:70" "443:433"
   service apache2 restart
