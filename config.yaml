@@ -74,3 +74,7 @@ options:
         type: string
         default: "no"
         description: Show Django debug messages.
+    ubuntu-theme:
+        type: string
+        default: "yes"
+        description: Use Ubuntu theme for the dashboard.
