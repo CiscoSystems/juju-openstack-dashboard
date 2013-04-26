@@ -1,13 +1,13 @@
 #!/bin/bash
 set -e
 
-CHARM_DIR=$(dirname $0)
+HOOKS_DIR="$CHARM_DIR/hooks"
 ARG0=${0##*/}
 
-if [[ -e $CHARM_DIR/horizon-common ]] ; then
-  . $CHARM_DIR/horizon-common
+if [[ -e $HOOKS_DIR/horizon-common ]] ; then
+  . $HOOKS_DIR/horizon-common
 else
-  echo "ERROR: Could not load horizon-common from $CHARM_DIR"
+  echo "ERROR: Could not load horizon-common from $HOOKS_DIR"
 fi
 
 function install_hook {
