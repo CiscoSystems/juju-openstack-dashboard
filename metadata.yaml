@@ -3,6 +3,7 @@ summary: a Django web interface to OpenStack
 maintainer: Adam Gandelman <adamg@canonical.com>
 description: |
 
+categories: ["misc"]
 requires:
   shared-db:
     interface: mysql
