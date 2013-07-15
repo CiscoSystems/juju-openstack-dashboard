@@ -29,11 +29,6 @@ CONFIG_FILES = OrderedDict([
                           horizon_contexts.IdentityServiceContext()],
         'services': ['apache2']
     }),
-    (HAPROXY_CONF, {
-        'hook_contexts': [context.HAProxyContext(),
-                          horizon_contexts.HAProxyContext()],
-        'services': ['haproxy'],
-    }),
     (APACHE_CONF, {
         'hook_contexts': [horizon_contexts.HorizonContext()],
         'services': ['apache2'],
@@ -50,6 +45,11 @@ CONFIG_FILES = OrderedDict([
     (PORTS_CONF, {
         'hook_contexts': [horizon_contexts.ApacheContext()],
         'services': ['apache2'],
+    }),
+    (HAPROXY_CONF, {
+        'hook_contexts': [context.HAProxyContext(),
+                          horizon_contexts.HAProxyContext()],
+        'services': ['haproxy'],
     }),
 ])
 

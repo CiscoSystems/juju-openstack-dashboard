@@ -39,9 +39,11 @@ def install():
     open_port(80)
 
 
+@restart_on_change(restart_map())
 @hooks.hook()
 def upgrade_charm():
     apt_install(filter_installed_packages(PACKAGES), fatal=True)
+    CONFIGS.write_all()
 
 
 @restart_on_change(restart_map())
