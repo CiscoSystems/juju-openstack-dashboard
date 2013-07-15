@@ -31,7 +31,7 @@ hooks = Hooks()
 CONFIGS = register_configs()
 
 
-@hooks.hook()
+@hooks.hook('install')
 def install():
     configure_installation_source(config('openstack-origin'))
     apt_update(fatal=True)
@@ -39,14 +39,14 @@ def install():
     open_port(80)
 
 
-@hooks.hook()
+@hooks.hook('upgrade-charm')
 @restart_on_change(restart_map())
 def upgrade_charm():
     apt_install(filter_installed_packages(PACKAGES), fatal=True)
     CONFIGS.write_all()
 
 
-@hooks.hook()
+@hooks.hook('config-changed')
 @restart_on_change(restart_map())
 def config_changed():
     # Ensure default role changes are propagated to keystone
@@ -82,7 +82,7 @@ def cluster_relation():
     CONFIGS.write(HAPROXY_CONF)
 
 
-@hooks.hook()
+@hooks.hook('ha-relation-joined')
 def ha_relation_joined():
     config = get_hacluster_config()
     resources = {
