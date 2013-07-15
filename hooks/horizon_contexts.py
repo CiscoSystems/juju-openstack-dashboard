@@ -24,7 +24,7 @@ class HAProxyContext(OSContextGenerator):
         ctxt = {
             'service_ports': {
                 'dash_insecure': [80, 70],
-                'dash_secure': [433, 423]
+                'dash_secure': [443, 433]
             }
         }
         return ctxt
@@ -64,7 +64,7 @@ class ApacheContext(OSContextGenerator):
         ''' Grab cert and key from configuraton for SSL config '''
         ctxt = {
             'http_port': 70,
-            'https_port': 423
+            'https_port': 433
         }
         return ctxt
 
