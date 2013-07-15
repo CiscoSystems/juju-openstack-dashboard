@@ -39,15 +39,15 @@ def install():
     open_port(80)
 
 
-@restart_on_change(restart_map())
 @hooks.hook()
+@restart_on_change(restart_map())
 def upgrade_charm():
     apt_install(filter_installed_packages(PACKAGES), fatal=True)
     CONFIGS.write_all()
 
 
-@restart_on_change(restart_map())
 @hooks.hook()
+@restart_on_change(restart_map())
 def config_changed():
     # Ensure default role changes are propagated to keystone
     for relid in relation_ids('identity-service'):
@@ -67,17 +67,17 @@ def keystone_joined(rel_id=None):
                  requested_roles=config('default-role'))
 
 
-@restart_on_change(restart_map())
 @hooks.hook('identity-service-relation-changed')
+@restart_on_change(restart_map())
 def keystone_changed():
     CONFIGS.write(LOCAL_SETTINGS)
     if relation_get('ca_cert'):
         install_ca_cert(relation_get('ca_cert'))
 
 
-@restart_on_change(restart_map())
 @hooks.hook('cluster-relation-departed',
             'cluster-relation-changed')
+@restart_on_change(restart_map())
 def cluster_relation():
     CONFIGS.write(HAPROXY_CONF)
 
