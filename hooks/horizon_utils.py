@@ -37,20 +37,20 @@ CONFIG_FILES = OrderedDict([
     (APACHE_CONF, {
         'hook_contexts': [horizon_contexts.HorizonContext()],
         'services': ['apache2'],
-    },)
+    }),
     (APACHE_SSL, {
         'hook_contexts': [horizon_contexts.ApacheSSLContext(),
                           horizon_contexts.ApacheContext()],
         'services': ['apache2'],
-    },)
+    }),
     (APACHE_DEFAULT, {
         'hook_contexts': [horizon_contexts.ApacheContext()],
         'services': ['apache2'],
-    },)
+    }),
     (PORTS_CONF, {
         'hook_contexts': [horizon_contexts.ApacheContext()],
         'services': ['apache2'],
-    },)
+    }),
 ])
 
 
