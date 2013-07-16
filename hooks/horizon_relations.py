@@ -16,13 +16,15 @@ from charmhelpers.core.host import (
     restart_on_change
 )
 from charmhelpers.contrib.openstack.utils import (
-    configure_installation_source
+    configure_installation_source,
+    openstack_upgrade_available
 )
 from horizon_utils import (
     PACKAGES, register_configs,
     restart_map,
     LOCAL_SETTINGS, HAPROXY_CONF,
-    enable_ssl
+    enable_ssl,
+    do_openstack_upgrade
 )
 from charmhelpers.contrib.hahelpers.apache import install_ca_cert
 from charmhelpers.contrib.hahelpers.cluster import get_hacluster_config
@@ -53,6 +55,8 @@ def config_changed():
     for relid in relation_ids('identity-service'):
         keystone_joined(relid)
     enable_ssl()
+    if openstack_upgrade_available('openstack-dashboard'):
+        do_openstack_upgrade(configs=CONFIGS)
     CONFIGS.write_all()
 
 

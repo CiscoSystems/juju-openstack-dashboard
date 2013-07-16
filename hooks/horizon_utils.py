@@ -5,7 +5,17 @@ import subprocess
 from collections import OrderedDict
 
 from charmhelpers.contrib.openstack.utils import (
-    get_os_codename_package
+    get_os_codename_package,
+    get_os_codename_install_source,
+    configure_installation_source
+)
+from charmhelpers.core.hookenv import (
+    config,
+    log
+)
+from charmhelpers.core.host import (
+    apt_install,
+    apt_update
 )
 
 PACKAGES = [
@@ -55,7 +65,7 @@ CONFIG_FILES = OrderedDict([
 
 
 def register_configs():
-    # Register config files with their respective contexts.
+    ''' Register config files with their respective contexts. '''
     release = get_os_codename_package('openstack-dashboard', fatal=False) or \
         'essex'
     configs = templating.OSConfigRenderer(templates_dir=TEMPLATES,
@@ -93,5 +103,32 @@ def restart_map():
 
 
 def enable_ssl():
+    ''' Enable SSL support in local apache2 instance '''
     subprocess.call(['a2ensite', 'default-ssl'])
     subprocess.call(['a2enmod', 'ssl'])
+
+
+def do_openstack_upgrade(configs):
+    """
+    Perform an upgrade.  Takes care of upgrading packages, rewriting
+    configs, database migrations and potentially any other post-upgrade
+    actions.
+
+    :param configs: The charms main OSConfigRenderer object.
+    """
+    new_src = config('openstack-origin')
+    new_os_rel = get_os_codename_install_source(new_src)
+
+    log('Performing OpenStack upgrade to %s.' % (new_os_rel))
+
+    configure_installation_source(new_src)
+    dpkg_opts = [
+        '--option', 'Dpkg::Options::=--force-confnew',
+        '--option', 'Dpkg::Options::=--force-confdef',
+    ]
+    apt_update()
+    apt_install(packages=PACKAGES, options=dpkg_opts, fatal=True)
+
+    # set CONFIGS to load templates from new release and regenerate config
+    configs.set_release(openstack_release=new_os_rel)
+    configs.write_all()
