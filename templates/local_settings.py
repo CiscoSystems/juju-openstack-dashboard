@@ -97,11 +97,13 @@ CACHES = {
    }
 }
 
+{% if ubuntu_theme %}
 # Enable the Ubuntu theme if it is present.
 try:
     from ubuntu_theme import *
 except ImportError:
     pass
+{% endif %}
 
 # Default Ubuntu apache configuration uses /horizon as the application root.
 # Configure auth redirects here accordingly.

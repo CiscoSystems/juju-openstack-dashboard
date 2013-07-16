@@ -54,7 +54,8 @@ class HorizonContext(OSContextGenerator):
             'compress_offline': config('offline-compression') == 'yes',
             'debug': config('debug') == 'yes',
             'default_role': config('default-role'),
-            "webroot": config('webroot')
+            "webroot": config('webroot'),
+            "ubuntu_theme": config('ubuntu-theme') == 'yes'
         }
         return ctxt
 

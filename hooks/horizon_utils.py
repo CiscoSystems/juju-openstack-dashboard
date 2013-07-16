@@ -21,7 +21,7 @@ from charmhelpers.core.host import (
 PACKAGES = [
     "openstack-dashboard", "python-keystoneclient", "python-memcache",
     "memcached", "haproxy", "python-novaclient",
-    "nodejs", "node-less"
+    "nodejs", "node-less", "openstack-dashboard-ubuntu-theme"
 ]
 
 LOCAL_SETTINGS = "/etc/openstack-dashboard/local_settings.py"
