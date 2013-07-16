@@ -116,7 +116,7 @@ COMPRESS_OFFLINE = {{ compress_offline }}
 # ]
 
 OPENSTACK_HOST = "127.0.0.1"
-OPENSTACK_KEYSTONE_URL = "http://{{ service_host }}:{{ service_port }]/v2.0"
+OPENSTACK_KEYSTONE_URL = "http://{{ service_host }}:{{ service_port }}/v2.0"
 OPENSTACK_KEYSTONE_DEFAULT_ROLE = "{{ default_role }}"
 
 # Disable SSL certificate checks (useful for self-signed certificates):
