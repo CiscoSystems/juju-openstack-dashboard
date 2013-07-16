@@ -8,7 +8,8 @@ from charmhelpers.core.hookenv import (
     config,
     relation_set,
     relation_get,
-    relation_ids
+    relation_ids,
+    unit_get
 )
 from charmhelpers.core.host import (
     apt_update, apt_install,
@@ -17,7 +18,8 @@ from charmhelpers.core.host import (
 )
 from charmhelpers.contrib.openstack.utils import (
     configure_installation_source,
-    openstack_upgrade_available
+    openstack_upgrade_available,
+    save_script_rc
 )
 from horizon_utils import (
     PACKAGES, register_configs,
@@ -57,6 +59,17 @@ def config_changed():
     enable_ssl()
     if openstack_upgrade_available('openstack-dashboard'):
         do_openstack_upgrade(configs=CONFIGS)
+
+    env_vars = {
+        'OPENSTACK_URL_HORIZON':
+        "http://localhost:70{}|Login+-+OpenStack".format(
+            config('webroot')
+        ),
+        'OPENSTACK_SERVICE_HORIZON': "apache2",
+        'OPENSTACK_PORT_HORIZON_SSL': 433,
+        'OPENSTACK_PORT_HORIZON': 70
+    }
+    save_script_rc(**env_vars)
     CONFIGS.write_all()
 
 
@@ -111,6 +124,13 @@ def ha_relation_joined():
                  resources=resources,
                  resource_params=resource_params,
                  clones=clones)
+
+
+@hooks.hook('website-relation-joined')
+def website_relation_joined():
+    relation_set(port=70,
+                 hostname=unit_get('private-address'))
+
 
 if __name__ == '__main__':
     try:

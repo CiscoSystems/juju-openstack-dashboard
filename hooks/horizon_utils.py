@@ -127,6 +127,5 @@ def do_openstack_upgrade(configs):
     apt_update()
     apt_install(packages=PACKAGES, options=dpkg_opts, fatal=True)
 
-    # set CONFIGS to load templates from new release and regenerate config
+    # set CONFIGS to load templates from new release
     configs.set_release(openstack_release=new_os_rel)
-    configs.write_all()
