@@ -4,7 +4,8 @@ from charmhelpers.core.hookenv import (
     related_units,
     relation_get,
     local_unit,
-    unit_get
+    unit_get,
+    log
 )
 from charmhelpers.contrib.openstack.context import (
     OSContextGenerator,
@@ -34,6 +35,10 @@ class HorizonHAProxyContext(HAProxyContext):
                 _unit = unit.replace('/', '-')
                 addr = relation_get('private-address', rid=rid, unit=unit)
                 cluster_hosts[_unit] = addr
+
+        log('Ensuring haproxy enabled in /etc/default/haproxy.')
+        with open('/etc/default/haproxy', 'w') as out:
+            out.write('ENABLED=1\n')
 
         ctxt = {
             'units': cluster_hosts,
