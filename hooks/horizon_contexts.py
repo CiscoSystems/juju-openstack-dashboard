@@ -2,10 +2,13 @@ from charmhelpers.core.hookenv import (
     config,
     relation_ids,
     related_units,
-    relation_get
+    relation_get,
+    local_unit,
+    unit_get
 )
 from charmhelpers.contrib.openstack.context import (
     OSContextGenerator,
+    HAProxyContext,
     context_complete
 )
 from charmhelpers.contrib.hahelpers.apache import (
@@ -15,13 +18,25 @@ from base64 import b64decode
 import os
 
 
-class HAProxyContext(OSContextGenerator):
+class HorizonHAProxyContext(HAProxyContext):
     def __call__(self):
         '''
-        Extends the main charmhelpers HAProxyContext with a port mapping
-        specific to this charm.
+        Horizon specific HAProxy context; haproxy is used all the time
+        in the openstack dashboard charm so a single instance just
+        self refers
         '''
+        cluster_hosts = {}
+        l_unit = local_unit().replace('/', '-')
+        cluster_hosts[l_unit] = unit_get('private-address')
+
+        for rid in relation_ids('cluster'):
+            for unit in related_units(rid):
+                _unit = unit.replace('/', '-')
+                addr = relation_get('private-address', rid=rid, unit=unit)
+                cluster_hosts[_unit] = addr
+
         ctxt = {
+            'units': cluster_hosts,
             'service_ports': {
                 'dash_insecure': [80, 70],
                 'dash_secure': [443, 433]
@@ -51,11 +66,11 @@ class HorizonContext(OSContextGenerator):
     def __call__(self):
         ''' Provide all configuration for Horizon '''
         ctxt = {
-            'compress_offline': config('offline-compression') == 'yes',
-            'debug': config('debug') == 'yes',
+            'compress_offline': config('offline-compression') in ['yes', True],
+            'debug': config('debug') in ['yes', True],
             'default_role': config('default-role'),
             "webroot": config('webroot'),
-            "ubuntu_theme": config('ubuntu-theme') == 'yes'
+            "ubuntu_theme": config('ubuntu-theme') in ['yes', True]
         }
         return ctxt
 

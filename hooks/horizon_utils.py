@@ -1,5 +1,4 @@
 import horizon_contexts
-import charmhelpers.contrib.openstack.context as context
 import charmhelpers.contrib.openstack.templating as templating
 import subprocess
 from collections import OrderedDict
@@ -57,8 +56,7 @@ CONFIG_FILES = OrderedDict([
         'services': ['apache2'],
     }),
     (HAPROXY_CONF, {
-        'hook_contexts': [context.HAProxyContext(),
-                          horizon_contexts.HAProxyContext()],
+        'hook_contexts': [horizon_contexts.HorizonHAProxyContext()],
         'services': ['haproxy'],
     }),
 ])
