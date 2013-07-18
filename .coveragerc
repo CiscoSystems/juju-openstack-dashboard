@@ -2,7 +2,5 @@
 # Regexes for lines to exclude from consideration
 exclude_lines =
     if __name__ == .__main__.:
-omit =
-    hooks/charmhelpers/*
 include=
-    hooks/*
+    hooks/horizon_*
