@@ -1,3 +1,4 @@
+# vim: set ts=4:et
 from charmhelpers.core.hookenv import (
     config,
     relation_ids,

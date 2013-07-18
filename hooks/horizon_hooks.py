@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# vim: set ts=4:et
 
 import sys
 from charmhelpers.core.hookenv import (
@@ -132,8 +133,12 @@ def website_relation_joined():
                  hostname=unit_get('private-address'))
 
 
-if __name__ == '__main__':
+def main():
     try:
         hooks.execute(sys.argv)
     except UnregisteredHookError as e:
         log('Unknown hook {} - skipping.'.format(e))
+
+
+if __name__ == '__main__':
+    main()

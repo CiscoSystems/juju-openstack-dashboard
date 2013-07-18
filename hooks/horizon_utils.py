@@ -1,3 +1,4 @@
+# vim: set ts=4:et
 import horizon_contexts
 import charmhelpers.contrib.openstack.templating as templating
 import subprocess
@@ -124,7 +125,7 @@ def do_openstack_upgrade(configs):
         '--option', 'Dpkg::Options::=--force-confnew',
         '--option', 'Dpkg::Options::=--force-confdef',
     ]
-    apt_update()
+    apt_update(fatal=True)
     apt_install(packages=PACKAGES, options=dpkg_opts, fatal=True)
 
     # set CONFIGS to load templates from new release
