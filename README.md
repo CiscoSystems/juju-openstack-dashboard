@@ -4,7 +4,7 @@ Overview
 The OpenStack Dashboard provides a Django based web interface for use by both
 administrators and users of an OpenStack Cloud.
 
-It allows you to managed Nova, Glance, Cinder and Neutron resources within the
+It allows you to manage Nova, Glance, Cinder and Neutron resources within the
 cloud.
 
 Usage
