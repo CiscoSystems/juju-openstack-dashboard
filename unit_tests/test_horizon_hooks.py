@@ -45,7 +45,6 @@ class TestHorizonHooks(CharmTestCase):
         self.configure_installation_source.assert_called_with('distro')
         self.apt_update.assert_called_with(fatal=True)
         self.apt_install.assert_called_with(['foo', 'bar'], fatal=True)
-        self.open_port.assert_called_with(80)
 
     @patch('charmhelpers.core.host.file_hash')
     @patch('charmhelpers.core.host.service')
@@ -110,6 +109,7 @@ class TestHorizonHooks(CharmTestCase):
         self.do_openstack_upgrade.assert_not_called()
         self.save_script_rc.assert_called()
         self.CONFIGS.write_all.assert_called()
+        self.open_port.assert_has_calls([call(80), call(443)])
 
     def test_config_changed_do_upgrade(self):
         self.relation_ids.return_value = []

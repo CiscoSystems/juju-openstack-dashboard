@@ -63,9 +63,9 @@ class IdentityServiceContext(OSContextGenerator):
                 ctxt['service_port'] = relation_get('service_port',
                                                     rid=r_id,
                                                     unit=unit)
-        if not context_complete(ctxt):
-            return {}
-        return ctxt
+                if context_complete(ctxt):
+                    return ctxt
+        return {}
 
 
 class HorizonContext(OSContextGenerator):

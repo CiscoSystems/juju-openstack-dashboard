@@ -41,7 +41,6 @@ def install():
     configure_installation_source(config('openstack-origin'))
     apt_update(fatal=True)
     apt_install(filter_installed_packages(PACKAGES), fatal=True)
-    open_port(80)
 
 
 @hooks.hook('upgrade-charm')
@@ -72,6 +71,8 @@ def config_changed():
     }
     save_script_rc(**env_vars)
     CONFIGS.write_all()
+    open_port(80)
+    open_port(443)
 
 
 @hooks.hook('identity-service-relation-joined')
