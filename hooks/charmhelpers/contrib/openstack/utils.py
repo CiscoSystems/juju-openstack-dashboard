@@ -17,9 +17,6 @@ from charmhelpers.core.hookenv import (
 
 from charmhelpers.core.host import (
     lsb_release,
-)
-
-from charmhelpers.fetch import (
     apt_install,
 )
 
@@ -133,7 +130,7 @@ def get_os_codename_package(package, fatal=True):
         e = 'Could not determine version of uninstalled package: %s' % package
         error_out(e)
 
-    vers = apt.upstream_version(pkg.current_ver.ver_str)
+    vers = apt.UpstreamVersion(pkg.current_ver.ver_str)
 
     try:
         if 'swift' in pkg.name:
@@ -164,6 +161,25 @@ def get_os_version_package(pkg, fatal=True):
             return version
     #e = "Could not determine OpenStack version for package: %s" % pkg
     #error_out(e)
+
+
+os_rel = None
+
+
+def os_release(package, base='essex'):
+    '''
+    Returns OpenStack release codename from a cached global.
+    If the codename can not be determined from either an installed package or
+    the installation source, the earliest release supported by the charm should
+    be returned.
+    '''
+    global os_rel
+    if os_rel:
+        return os_rel
+    os_rel = (get_os_codename_package(package, fatal=False) or
+              get_os_codename_install_source(config('openstack-origin')) or
+              base)
+    return os_rel
 
 
 def import_key(keyid):

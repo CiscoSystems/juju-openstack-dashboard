@@ -28,11 +28,8 @@ from charmhelpers.core.hookenv import (
     ERROR
 )
 
-from charmhelpers.fetch import (
-    apt_install,
-)
-
 from charmhelpers.core.host import (
+    apt_install,
     mount,
     mounts,
     service_start,
