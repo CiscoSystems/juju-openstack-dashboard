@@ -12,9 +12,11 @@ from charmhelpers.core.hookenv import (
     relation_ids,
     unit_get
 )
-from charmhelpers.core.host import (
+from charmhelpers.fetch import (
     apt_update, apt_install,
     filter_installed_packages,
+)
+from charmhelpers.core.host import (
     restart_on_change
 )
 from charmhelpers.contrib.openstack.utils import (
@@ -108,8 +110,8 @@ def ha_relation_joined():
         'res_horizon_vip': 'ocf:heartbeat:IPaddr2',
         'res_horizon_haproxy': 'lsb:haproxy'
     }
-    vip_params = 'params ip="{}" cidr_netmask="{}" nic="{}"'\
-        .format(config['vip'], config['vip_cidr'], config['vip_iface'])
+    vip_params = 'params ip="{}" cidr_netmask="{}" nic="{}"'.format(
+        config['vip'], config['vip_cidr'], config['vip_iface'])
     resource_params = {
         'res_horizon_vip': vip_params,
         'res_horizon_haproxy': 'op monitor interval="5s"'
