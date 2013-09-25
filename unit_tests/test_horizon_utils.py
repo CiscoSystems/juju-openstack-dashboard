@@ -35,6 +35,8 @@ class TestHorizonUtils(CharmTestCase):
         ex_map = OrderedDict([
             ('/etc/openstack-dashboard/local_settings.py', ['apache2']),
             ('/etc/apache2/conf.d/openstack-dashboard.conf', ['apache2']),
+            ('/etc/apache2/conf-available/openstack-dashboard.conf',
+             ['apache2']),
             ('/etc/apache2/sites-available/default-ssl', ['apache2']),
             ('/etc/apache2/sites-available/default', ['apache2']),
             ('/etc/apache2/ports.conf', ['apache2']),
@@ -60,7 +62,9 @@ class TestHorizonUtils(CharmTestCase):
             'cloud:precise-havana'
         )
 
-    def test_register_configs(self):
+    @patch('os.path.exists')
+    def test_register_configs(self, _exists):
+        _exists.return_value = False
         self.get_os_codename_package.return_value = 'havana'
         configs = horizon_utils.register_configs()
         confs = [horizon_utils.LOCAL_SETTINGS,
@@ -75,7 +79,26 @@ class TestHorizonUtils(CharmTestCase):
                 horizon_utils.CONFIG_FILES[conf]['hook_contexts']
             )
 
-    def test_register_configs_pre_install(self):
+    @patch('os.path.exists')
+    def test_register_configs_apache24(self, _exists):
+        _exists.return_value = True
+        self.get_os_codename_package.return_value = 'havana'
+        configs = horizon_utils.register_configs()
+        confs = [horizon_utils.LOCAL_SETTINGS,
+                 horizon_utils.HAPROXY_CONF,
+                 horizon_utils.APACHE_24_CONF,
+                 horizon_utils.APACHE_SSL,
+                 horizon_utils.APACHE_DEFAULT,
+                 horizon_utils.PORTS_CONF]
+        for conf in confs:
+            configs.register.assert_any_call(
+                conf,
+                horizon_utils.CONFIG_FILES[conf]['hook_contexts']
+            )
+
+    @patch('os.path.exists')
+    def test_register_configs_pre_install(self, _exists):
+        _exists.return_value = False
         self.get_os_codename_package.return_value = None
         configs = horizon_utils.register_configs()
         confs = [horizon_utils.LOCAL_SETTINGS,

@@ -2,6 +2,7 @@
 import horizon_contexts
 import charmhelpers.contrib.openstack.templating as templating
 import subprocess
+import os
 from collections import OrderedDict
 
 from charmhelpers.contrib.openstack.utils import (
@@ -27,6 +28,7 @@ PACKAGES = [
 LOCAL_SETTINGS = "/etc/openstack-dashboard/local_settings.py"
 HAPROXY_CONF = "/etc/haproxy/haproxy.cfg"
 APACHE_CONF = "/etc/apache2/conf.d/openstack-dashboard.conf"
+APACHE_24_CONF = "/etc/apache2/conf-available/openstack-dashboard.conf"
 PORTS_CONF = "/etc/apache2/ports.conf"
 APACHE_SSL = "/etc/apache2/sites-available/default-ssl"
 APACHE_DEFAULT = "/etc/apache2/sites-available/default"
@@ -40,6 +42,10 @@ CONFIG_FILES = OrderedDict([
         'services': ['apache2']
     }),
     (APACHE_CONF, {
+        'hook_contexts': [horizon_contexts.HorizonContext()],
+        'services': ['apache2'],
+    }),
+    (APACHE_24_CONF, {
         'hook_contexts': [horizon_contexts.HorizonContext()],
         'services': ['apache2'],
     }),
@@ -72,13 +78,21 @@ def register_configs():
 
     confs = [LOCAL_SETTINGS,
              HAPROXY_CONF,
-             APACHE_CONF,
              APACHE_SSL,
              APACHE_DEFAULT,
              PORTS_CONF]
 
     for conf in confs:
         configs.register(conf, CONFIG_FILES[conf]['hook_contexts'])
+
+    if os.path.exists(os.path.dirname(APACHE_24_CONF)):
+        print APACHE_24_CONF
+        configs.register(APACHE_24_CONF,
+                         CONFIG_FILES[APACHE_24_CONF]['hook_contexts'])
+    else:
+        print APACHE_CONF        
+        configs.register(APACHE_CONF,
+                         CONFIG_FILES[APACHE_CONF]['hook_contexts'])
 
     return configs
 
