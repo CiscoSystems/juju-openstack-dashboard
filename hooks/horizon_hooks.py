@@ -33,6 +33,7 @@ from horizon_utils import (
 )
 from charmhelpers.contrib.hahelpers.apache import install_ca_cert
 from charmhelpers.contrib.hahelpers.cluster import get_hacluster_config
+from charmhelpers.payload.execd import execd_preinstall
 
 hooks = Hooks()
 CONFIGS = register_configs()
@@ -48,6 +49,7 @@ def install():
 @hooks.hook('upgrade-charm')
 @restart_on_change(restart_map())
 def upgrade_charm():
+    execd_preinstall()
     apt_install(filter_installed_packages(PACKAGES), fatal=True)
     CONFIGS.write_all()
 
