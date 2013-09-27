@@ -16,6 +16,9 @@ from charmhelpers.contrib.openstack.context import (
 from charmhelpers.contrib.hahelpers.apache import (
     get_cert
 )
+
+from charmhelpers.core.host import pwgen
+
 from base64 import b64decode
 import os
 
@@ -76,7 +79,8 @@ class HorizonContext(OSContextGenerator):
             'debug': config('debug') in ['yes', True],
             'default_role': config('default-role'),
             "webroot": config('webroot'),
-            "ubuntu_theme": config('ubuntu-theme') in ['yes', True]
+            "ubuntu_theme": config('ubuntu-theme') in ['yes', True],
+            "secret": config('secret') or pwgen()
         }
         return ctxt
 

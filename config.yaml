@@ -78,3 +78,6 @@ options:
         type: string
         default: "yes"
         description: Use Ubuntu theme for the dashboard.
+    secret:
+        type: string
+        descriptions: Secret for Horizon to use when securing internal data; set this when using multiple dashboard units.
