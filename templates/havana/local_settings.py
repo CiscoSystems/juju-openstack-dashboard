@@ -23,8 +23,8 @@ TEMPLATE_DEBUG = DEBUG
 
 # If Horizon is being served through SSL, then uncomment the following two
 # settings to better secure the cookies from security exploits
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
+#CSRF_COOKIE_SECURE = True
+#SESSION_COOKIE_SECURE = True
 
 # Overrides for OpenStack API versions. Use this setting to force the
 # OpenStack dashboard to use a specfic API version for a given service API.
