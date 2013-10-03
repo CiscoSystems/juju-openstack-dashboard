@@ -106,8 +106,9 @@ except ImportError:
 
 # Default Ubuntu apache configuration uses /horizon as the application root.
 # Configure auth redirects here accordingly.
-LOGIN_URL='{{ webroot }}/auth/login/'
-LOGIN_REDIRECT_URL='{{ webroot }}'
+LOGIN_URL = '{{ webroot }}/auth/login/'
+LOGOUT_URL = '{{ webroot }}/auth/logout/'
+LOGIN_REDIRECT_URL = '{{ webroot }}'
 
 # The Ubuntu package includes pre-compressed JS and compiled CSS to allow
 # offline compression by default.  To enable online compression, install
