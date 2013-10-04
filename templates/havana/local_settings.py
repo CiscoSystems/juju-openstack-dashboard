@@ -89,7 +89,7 @@ LOCAL_PATH = os.path.dirname(os.path.abspath(__file__))
 # requests routed to the same dashboard instance or you set the same SECRET_KEY
 # for all of them.
 
-SECRET_KEY = {{ secret }}
+SECRET_KEY = "{{ secret }}"
 
 # We recommend you use memcached for development; otherwise after every reload
 # of the django development server, you will have to login again. To use
