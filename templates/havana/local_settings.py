@@ -43,6 +43,10 @@ TEMPLATE_DEBUG = DEBUG
 # with Keystone V3. All entities will be created in the default domain.
 # OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = 'Default'
 
+# Set Console type:
+# valid options would be "AUTO", "VNC" or "SPICE"
+# CONSOLE_TYPE = "AUTO"
+
 # Default OpenStack Dashboard configuration.
 HORIZON_CONFIG = {
     'dashboards': ('project', 'admin', 'settings',),
@@ -84,7 +88,8 @@ LOCAL_PATH = os.path.dirname(os.path.abspath(__file__))
 # behind a load-balancer). Either you have to make sure that a session gets all
 # requests routed to the same dashboard instance or you set the same SECRET_KEY
 # for all of them.
-SECRET_KEY = '{{ secret }}'
+
+SECRET_KEY = {{ secret }}
 
 # We recommend you use memcached for development; otherwise after every reload
 # of the django development server, you will have to login again. To use
@@ -95,25 +100,6 @@ CACHES = {
        'LOCATION' : '127.0.0.1:11211',
    }
 }
-
-{% if ubuntu_theme %}
-# Enable the Ubuntu theme if it is present.
-try:
-    from ubuntu_theme import *
-except ImportError:
-    pass
-{% endif %}
-
-# Default Ubuntu apache configuration uses /horizon as the application root.
-# Configure auth redirects here accordingly.
-LOGIN_URL = '{{ webroot }}/auth/login/'
-LOGOUT_URL = '{{ webroot }}/auth/logout/'
-LOGIN_REDIRECT_URL = '{{ webroot }}'
-
-# The Ubuntu package includes pre-compressed JS and compiled CSS to allow
-# offline compression by default.  To enable online compression, install
-# the node-less package and enable the following option.
-COMPRESS_OFFLINE = {{ compress_offline }}
 
 # Send email to the console by default
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -132,12 +118,15 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 #     ('http://cluster2.example.com:5000/v2.0', 'cluster2'),
 # ]
 
-OPENSTACK_HOST = "127.0.0.1"
-OPENSTACK_KEYSTONE_URL = "http://{{ service_host }}:{{ service_port }}/v2.0"
+OPENSTACK_HOST = "{{ service_host }}"
+OPENSTACK_KEYSTONE_URL = "http://%s:{{ service_port }}/v2.0" % OPENSTACK_HOST
 OPENSTACK_KEYSTONE_DEFAULT_ROLE = "{{ default_role }}"
 
 # Disable SSL certificate checks (useful for self-signed certificates):
 # OPENSTACK_SSL_NO_VERIFY = True
+
+# The CA certificate to use to verify SSL connections
+# OPENSTACK_SSL_CACERT = '/path/to/cacert.pem'
 
 # The OPENSTACK_KEYSTONE_BACKEND settings can be used to identify the
 # capabilities of the auth backend for Keystone.
@@ -156,23 +145,51 @@ OPENSTACK_KEYSTONE_BACKEND = {
 
 OPENSTACK_HYPERVISOR_FEATURES = {
     'can_set_mount_point': True,
-
-    # NOTE: as of Grizzly this is not yet supported in Nova so enabling this
-    # setting will not do anything useful
-    'can_encrypt_volumes': False
 }
 
-# The OPENSTACK_QUANTUM_NETWORK settings can be used to enable optional
-# services provided by quantum.  Currently only the load balancer service
-# is available.
-OPENSTACK_QUANTUM_NETWORK = {
-    'enable_lb': False
+# The OPENSTACK_NEUTRON_NETWORK settings can be used to enable optional
+# services provided by neutron. Options currenly available are load
+# balancer service, security groups, quotas.
+OPENSTACK_NEUTRON_NETWORK = {
+    'enable_lb': False,
+    'enable_quotas': True,
+    'enable_security_group': True,
+    # The profile_support option is used to detect if an external router can be
+    # configured via the dashboard. When using specific plugins the
+    # profile_support can be turned on if needed.
+    'profile_support': None,
+    #'profile_support': 'cisco',
+}
+
+# The OPENSTACK_IMAGE_BACKEND settings can be used to customize features
+# in the OpenStack Dashboard related to the Image service, such as the list
+# of supported image formats.
+OPENSTACK_IMAGE_BACKEND = {
+    'image_formats': [
+        ('', ''),
+        ('aki', _('AKI - Amazon Kernel Image')),
+        ('ami', _('AMI - Amazon Machine Image')),
+        ('ari', _('ARI - Amazon Ramdisk Image')),
+        ('iso', _('ISO - Optical Disk Image')),
+        ('qcow2', _('QCOW2 - QEMU Emulator')),
+        ('raw', _('Raw')),
+        ('vdi', _('VDI')),
+        ('vhd', _('VHD')),
+        ('vmdk', _('VMDK'))
+    ]
 }
 
 # OPENSTACK_ENDPOINT_TYPE specifies the endpoint type to use for the endpoints
 # in the Keystone service catalog. Use this setting when Horizon is running
-# external to the OpenStack environment. The default is 'internalURL'.
+# external to the OpenStack environment. The default is 'publicURL'.
 #OPENSTACK_ENDPOINT_TYPE = "publicURL"
+
+# SECONDARY_ENDPOINT_TYPE specifies the fallback endpoint type to use in the
+# case that OPENSTACK_ENDPOINT_TYPE is not present in the endpoints
+# in the Keystone service catalog. Use this setting when Horizon is running
+# external to the OpenStack environment. The default is None.  This
+# value should differ from OPENSTACK_ENDPOINT_TYPE if used.
+#SECONDARY_ENDPOINT_TYPE = "publicURL"
 
 # The number of objects (Swift containers/objects or images) to display
 # on a single page before providing a paging element (a "more" link)
@@ -183,6 +200,36 @@ API_RESULT_PAGE_SIZE = 20
 # The timezone of the server. This should correspond with the timezone
 # of your entire OpenStack installation, and hopefully be in UTC.
 TIME_ZONE = "UTC"
+
+# When launching an instance, the menu of available flavors is
+# sorted by RAM usage, ascending.  Provide a callback method here
+# (and/or a flag for reverse sort) for the sorted() method if you'd
+# like a different behaviour.  For more info, see
+# http://docs.python.org/2/library/functions.html#sorted
+# CREATE_INSTANCE_FLAVOR_SORT = {
+#     'key': my_awesome_callback_method,
+#     'reverse': False,
+# }
+
+# The Horizon Policy Enforcement engine uses these values to load per service
+# policy rule files. The content of these files should match the files the
+# OpenStack services are using to determine role based access control in the
+# target installation.
+
+# Path to directory containing policy.json files
+#POLICY_FILES_PATH = os.path.join(ROOT_PATH, "conf")
+# Map of local copy of service policy files
+#POLICY_FILES = {
+#    'identity': 'keystone_policy.json',
+#    'compute': 'nova_policy.json'
+#}
+
+# Trove user and database extension support. By default support for
+# creating users and databases on database instances is turned on.
+# To disable these extensions set the permission here to something
+# unusable such as ["!"].
+# TROVE_ADD_USER_PERMS = []
+# TROVE_ADD_DATABASE_PERMS = []
 
 LOGGING = {
     'version': 1,
@@ -237,9 +284,142 @@ LOGGING = {
             'handlers': ['console'],
             'propagate': False,
         },
+        'heatclient': {
+            'handlers': ['console'],
+            'propagate': False,
+        },
         'nose.plugins.manager': {
             'handlers': ['console'],
             'propagate': False,
         }
     }
 }
+
+SECURITY_GROUP_RULES = {
+    'all_tcp': {
+        'name': 'ALL TCP',
+        'ip_protocol': 'tcp',
+        'from_port': '1',
+        'to_port': '65535',
+    },
+    'all_udp': {
+        'name': 'ALL UDP',
+        'ip_protocol': 'udp',
+        'from_port': '1',
+        'to_port': '65535',
+    },
+    'all_icmp': {
+        'name': 'ALL ICMP',
+        'ip_protocol': 'icmp',
+        'from_port': '-1',
+        'to_port': '-1',
+    },
+    'ssh': {
+        'name': 'SSH',
+        'ip_protocol': 'tcp',
+        'from_port': '22',
+        'to_port': '22',
+    },
+    'smtp': {
+        'name': 'SMTP',
+        'ip_protocol': 'tcp',
+        'from_port': '25',
+        'to_port': '25',
+    },
+    'dns': {
+        'name': 'DNS',
+        'ip_protocol': 'tcp',
+        'from_port': '53',
+        'to_port': '53',
+    },
+    'http': {
+        'name': 'HTTP',
+        'ip_protocol': 'tcp',
+        'from_port': '80',
+        'to_port': '80',
+    },
+    'pop3': {
+        'name': 'POP3',
+        'ip_protocol': 'tcp',
+        'from_port': '110',
+        'to_port': '110',
+    },
+    'imap': {
+        'name': 'IMAP',
+        'ip_protocol': 'tcp',
+        'from_port': '143',
+        'to_port': '143',
+    },
+    'ldap': {
+        'name': 'LDAP',
+        'ip_protocol': 'tcp',
+        'from_port': '389',
+        'to_port': '389',
+    },
+    'https': {
+        'name': 'HTTPS',
+        'ip_protocol': 'tcp',
+        'from_port': '443',
+        'to_port': '443',
+    },
+    'smtps': {
+        'name': 'SMTPS',
+        'ip_protocol': 'tcp',
+        'from_port': '465',
+        'to_port': '465',
+    },
+    'imaps': {
+        'name': 'IMAPS',
+        'ip_protocol': 'tcp',
+        'from_port': '993',
+        'to_port': '993',
+    },
+    'pop3s': {
+        'name': 'POP3S',
+        'ip_protocol': 'tcp',
+        'from_port': '995',
+        'to_port': '995',
+    },
+    'ms_sql': {
+        'name': 'MS SQL',
+        'ip_protocol': 'tcp',
+        'from_port': '1443',
+        'to_port': '1443',
+    },
+    'mysql': {
+        'name': 'MYSQL',
+        'ip_protocol': 'tcp',
+        'from_port': '3306',
+        'to_port': '3306',
+    },
+    'rdp': {
+        'name': 'RDP',
+        'ip_protocol': 'tcp',
+        'from_port': '3389',
+        'to_port': '3389',
+    },
+}
+
+{% if ubuntu_theme %}
+# Enable the Ubuntu theme if it is present.
+try:
+    from ubuntu_theme import *
+except ImportError:
+    pass
+{% endif %}
+
+# Default Ubuntu apache configuration uses /horizon as the application root.
+# Configure auth redirects here accordingly.
+LOGIN_URL='{{ webroot }}/auth/login/'
+LOGOUT_URL='{{ webroot }}/auth/logout/'
+LOGIN_REDIRECT_URL='{{ webroot }}'
+
+# The Ubuntu package includes pre-compressed JS and compiled CSS to allow
+# offline compression by default.  To enable online compression, install
+# the node-less package and enable the following option.
+COMPRESS_OFFLINE = {{ compress_offline }}
+
+# By default, validation of the HTTP Host header is disabled.  Production
+# installations should have this set accordingly.  For more information
+# see https://docs.djangoproject.com/en/dev/ref/settings/.
+ALLOWED_HOSTS = '*'
