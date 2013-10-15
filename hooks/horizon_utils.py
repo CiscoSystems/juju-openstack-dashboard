@@ -86,11 +86,9 @@ def register_configs():
         configs.register(conf, CONFIG_FILES[conf]['hook_contexts'])
 
     if os.path.exists(os.path.dirname(APACHE_24_CONF)):
-        print APACHE_24_CONF
         configs.register(APACHE_24_CONF,
                          CONFIG_FILES[APACHE_24_CONF]['hook_contexts'])
     else:
-        print APACHE_CONF        
         configs.register(APACHE_CONF,
                          CONFIG_FILES[APACHE_CONF]['hook_contexts'])
 

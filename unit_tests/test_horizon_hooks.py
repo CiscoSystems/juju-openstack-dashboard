@@ -26,7 +26,8 @@ TO_PATCH = [
     'save_script_rc',
     'install_ca_cert',
     'unit_get',
-    'log']
+    'log',
+    'execd_preinstall']
 
 
 class TestHorizonHooks(CharmTestCase):
