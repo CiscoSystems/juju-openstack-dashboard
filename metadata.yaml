@@ -2,11 +2,13 @@ name: openstack-dashboard
 summary: a Django web interface to OpenStack
 maintainer: Adam Gandelman <adamg@canonical.com>
 description: |
-
+ The OpenStack Dashboard provides a full feature web interface for interacting
+ with instances, images, volumes and networks within an OpenStack deployment.
 categories: ["misc"]
+provides:
+  website:
+    interface: http
 requires:
-  shared-db:
-    interface: mysql
   identity-service:
     interface: keystone
   ha:
