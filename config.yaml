@@ -3,7 +3,7 @@ options:
         default: distro
         type: string
         description: |
-          repository from which to install.  May be one of the following:
+          Repository from which to install.  May be one of the following:
           distro (default), ppa:somecustom/ppa, a deb url sources entry,
           or a supported Cloud Archive release pocket.
 
